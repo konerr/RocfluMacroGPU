@@ -829,7 +829,9 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux1(pRegion)
   pSd  => pRegion%mixt%sd  
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
   nTol = 1.0E-14_RFREAL
@@ -883,22 +885,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux1(pRegion)
 #endif
 ! END TEMPORARY: Manoj
 
-! DEBUG: Manoj-PBA1D, Notes: To match Jianghui's implementation
-!                         1. Use conventional definiation of enthalpy
-!                    Changing it to earlier implementation of Manoj
-! END DEBUG    
-! DEBUG: Manoj-PBA1D    
-!    Hl  = MixtPerf_Ho_CpTUVW(cpl,tl,ul,vl,wl)
     Hl  = pCv(CV_MIXT_ENER,c1)*irl + pl/rl
-! END DEBUG
-
-! TEMPORARY: Manoj            
-!#ifdef PLAG
-!    IF ( global%plagUsed .AND. (pRegion%plag%nPcls > 1) ) THEN
-!      rl = rl*(1.0_RFREAL - pRegion%plag%vFracE(1,c1))
-!    END IF ! global%plagUsed
-!#endif
-! END TEMPORARY: Manoj 
 
 ! ------------------------------------------------------------------------------
 !   Right state
@@ -926,18 +913,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux1(pRegion)
 #endif
 ! END TEMPORARY: Manoj 
 
-! DEBUG: Manoj-PBA1D    
-!    Hr  = MixtPerf_Ho_CpTUVW(cpr,tr,ur,vr,wr)
     Hr  = pCv(CV_MIXT_ENER,c2)*irr + pr/rr
-! END DEBUG
-
-! TEMPORARY: Manoj            
-!#ifdef PLAG
-!    IF ( global%plagUsed .AND. (pRegion%plag%nPcls > 1) ) THEN
-!      rr = rr*(1.0_RFREAL - pRegion%plag%vFracE(1,c2))
-!    END IF ! global%plagUsed
-!#endif
-! END TEMPORARY: Manoj 
 
 ! ==============================================================================
 !   Compute fluxes 
@@ -1327,10 +1303,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux1_MJWL(pRegion)
     tl  = pDv(DV_MIXT_TEMP,c1)
     al  = pDv(DV_MIXT_SOUN,c1)
 
-! TEMPORARY: Manoj-JWL, Confirm it    
-!    Hl  = MixtPerf_Ho_CpTUVW(cpl,tl,ul,vl,wl)
     Hl  = pCv(CV_MIXT_ENER,c1)*irl + pl/rl
-! END TEMPORARY
 
 ! ------------------------------------------------------------------------------
 !   Right state
@@ -1349,10 +1322,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux1_MJWL(pRegion)
     tr  = pDv(DV_MIXT_TEMP,c2)    
     ar  = pDv(DV_MIXT_SOUN,c2)
     
-! TEMPORARY: Manoj-JWL, Confirm it    
-!    Hr  = MixtPerf_Ho_CpTUVW(cpr,tr,ur,vr,wr)
     Hr  = pCv(CV_MIXT_ENER,c2)*irr + pr/rr
-! END TEMPORARY
 
 ! ==============================================================================
 !   Compute fluxes 
@@ -1534,9 +1504,11 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MJWL(pRegion)
   pSd  => pRegion%mixt%sd  
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   pSpecInput => pRegion%specInput
   pCvSpec => pRegion%spec%cv  
   pGcSpec => pRegion%spec%gradCell    
+  END IF
 #endif
 
   IF ( pRegion%spec%cvState /= CV_MIXT_STATE_CONS ) THEN 
@@ -1625,6 +1597,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MJWL(pRegion)
 #endif
 
 #ifdef SPEC
+    IF (global%specUsed .EQV. .TRUE.) THEN
     iCvSpecAir = SPEC_GetSpeciesIndex(global,pSpecInput,'AIR')
     mwAir = pSpecInput%specType(iCvSpecAir)%pMaterial%molw
     cpAir = pSpecInput%specType(iCvSpecAir)%pMaterial%spht
@@ -1644,6 +1617,12 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MJWL(pRegion)
     CALL RFLU_JWL_ComputeEnergyMixt(pRegion,c1,gAir,gcAir,pl,rl,YProducts,al,el,tl)
 
     Hl = el + 0.5_RFREAL*(ul*ul+vl*vl+wl*wl) + pl/rl
+    
+    ELSE
+    
+    WRITE(*,*) 'Species Module must be active to use JWL EoS Model!'
+    STOP
+    END IF !specUsed
 #endif                   
 
 ! ------------------------------------------------------------------------------
@@ -1691,6 +1670,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MJWL(pRegion)
 #endif
 
 #ifdef SPEC
+    IF (global%specUsed .EQV. .TRUE.) THEN
     iCvSpecAir = SPEC_GetSpeciesIndex(global,pSpecInput,'AIR')
     mwAir = pSpecInput%specType(iCvSpecAir)%pMaterial%molw
     cpAir = pSpecInput%specType(iCvSpecAir)%pMaterial%spht
@@ -1705,10 +1685,16 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MJWL(pRegion)
               + pGcSpec(ZCOORD,iCvSpecProducts,c2)*dz
    
     CALL RFLU_JWL_Yfix(pRegion,c1,1,rl,el,pl,YProducts,rl,el,pl,YProducts)
-    !CALL RFLU_JWL_ComputeEnergyMixt(gAir,gcAir,pr,rr,YProducts,ar,er,tr)
     CALL RFLU_JWL_ComputeEnergyMixt(pRegion,c2,gAir,gcAir,pr,rr,YProducts,ar,er,tr)
 
     Hr = er + 0.5_RFREAL*(ur*ur+vr*vr+wr*wr) + pr/rr
+   
+    ELSE
+
+    WRITE(*,*) 'Species Module must be active to use JWL EoS Model!'
+    STOP
+    END IF !specUsed
+
 #endif                  
 
 ! Rahul - Compute volume fraction at the face by a weighted average. Weights are
@@ -1922,8 +1908,10 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MPSD(pRegion)
   pSd  => pRegion%mixt%sd  
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   pCvSpec => pRegion%spec%cv  
   pGcSpec => pRegion%spec%gradCell    
+  END IF
 #endif
 
   IF ( pRegion%spec%cvState /= CV_MIXT_STATE_CONS ) THEN 
@@ -1977,6 +1965,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MPSD(pRegion)
     dz  = zc - pGrid%cofg(ZCOORD,c1)
 
 #ifdef SPEC
+    IF (global%specUsed .EQV. .TRUE.) THEN
     immg = 0.0_RFREAL
     cpl  = 0.0_RFREAL
     Yg   = 0.0_RFREAL
@@ -2003,6 +1992,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MPSD(pRegion)
     gcg = MixtPerf_R_M(mmg)
     gcl = Yg/(1.0_RFREAL-phip)*gcg
     mml = MixtPerf_M_R(gcl)
+    END IF !specUsed
 #endif                    
 
     ul = pCv(CV_MIXT_XMOM,c1)*irl
@@ -2042,6 +2032,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MPSD(pRegion)
     dz  = zc - pGrid%cofg(ZCOORD,c2)
 
 #ifdef SPEC
+    IF (global%specUsed .EQV. .TRUE.) THEN
     immg = 0.0_RFREAL
     cpr  = 0.0_RFREAL
     Yg   = 0.0_RFREAL
@@ -2068,6 +2059,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MPSD(pRegion)
     gcg = MixtPerf_R_M(mmg)
     gcr = Yg/(1.0_RFREAL-phip)*gcg
     mmr = MixtPerf_M_R(gcr)
+    END IF !specUsed
 #endif  
     
     ur = pCv(CV_MIXT_XMOM,c2)*irr
@@ -2301,9 +2293,11 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MTCP(pRegion)
   pSd  => pRegion%mixt%sd  
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   pCvSpec    => pRegion%spec%cv  
   pGcSpec    => pRegion%spec%gradCell    
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
   nTol = 1.0E-14_RFREAL
@@ -2359,6 +2353,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MTCP(pRegion)
     dz  = zc - pGrid%cofg(ZCOORD,c1)
 
 #ifdef SPEC
+    IF (global%specUsed .EQV. .TRUE.) THEN
     mml = 0.0_RFREAL
     cpl = 0.0_RFREAL
 
@@ -2375,7 +2370,8 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MTCP(pRegion)
     
     mml = 1.0_RFREAL/mml
     gcl = MixtPerf_R_M(mml)
-    gl  = MixtPerf_G_CpR(cpl,gcl)    
+    gl  = MixtPerf_G_CpR(cpl,gcl)
+    END IF !specUsed    
 #endif                   
 
     ul = pCv(CV_MIXT_XMOM,c1)*irl
@@ -2450,6 +2446,7 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MTCP(pRegion)
     dz  = zc - pGrid%cofg(ZCOORD,c2)
 
 #ifdef SPEC
+    IF (global%specUsed .EQV. .TRUE.) THEN
     mmr = 0.0_RFREAL
     cpr = 0.0_RFREAL
 
@@ -2468,7 +2465,8 @@ SUBROUTINE RFLU_AUSMPlusUp_ComputeFlux2_MTCP(pRegion)
     
     mmr = 1.0_RFREAL/mmr 
     gcr = MixtPerf_R_M(mmr)
-    gr  = MixtPerf_G_CpR(cpr,gcr)           
+    gr  = MixtPerf_G_CpR(cpr,gcr) 
+    END IF !specUsed          
 #endif
               
     ur = pCv(CV_MIXT_XMOM,c2)*irr

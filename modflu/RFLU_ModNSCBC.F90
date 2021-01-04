@@ -252,7 +252,9 @@ SUBROUTINE RFLU_NSCBC_CompFirstPatchFlux(pRegion,pPatch)
   sd   => pRegion%mixt%sd
 
 #ifdef SPEC
+  IF ( global%specUsed .EQV. .TRUE. ) THEN
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
   nLocs = 0
@@ -327,7 +329,7 @@ SUBROUTINE RFLU_NSCBC_CompFirstPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
  CALL RFLU_ScalarConvertCvCons2Prim(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     tl = MixtPerf_T_DPR(rl,pl,rgas)
@@ -365,7 +367,7 @@ SUBROUTINE RFLU_NSCBC_CompFirstPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
  CALL RFLU_ScalarConvertCvCons2Prim(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     tr = MixtPerf_T_DPR(rr,pr,rgas)
@@ -407,7 +409,7 @@ SUBROUTINE RFLU_NSCBC_CompFirstPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
  CALL RFLU_ScalarConvertCvCons2Prim(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     ah = MixtPerf_C_GHoVm2(ggas,Hh,2.0_RFREAL*sh) ! NOTE factor of 2
@@ -659,7 +661,9 @@ SUBROUTINE RFLU_NSCBC_CompPatchFlux(pRegion,pPatch)
   sd   => pRegion%mixt%sd
 
 #ifdef SPEC
+  IF ( global%specUsed .EQV. .TRUE. ) THEN
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
 
@@ -737,7 +741,7 @@ SUBROUTINE RFLU_NSCBC_CompPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertCvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     tr = MixtPerf_T_DPR(rr,pr,rgas)
@@ -795,7 +799,7 @@ SUBROUTINE RFLU_NSCBC_CompPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertCvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     ah = MixtPerf_C_GHoVm2(ggas,Hh,2.0_RFREAL*sh) ! NOTE factor of 2
@@ -1045,7 +1049,9 @@ SUBROUTINE RFLU_NSCBC_CompSecondPatchFlux(pRegion,pPatch)
   sd   => pRegion%mixt%sd
 
 #ifdef SPEC
+  IF ( global%specUsed .EQV. .TRUE. ) THEN
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
   nLocs = 0
@@ -1140,7 +1146,7 @@ SUBROUTINE RFLU_NSCBC_CompSecondPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertCvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     tl = MixtPerf_T_DPR(rl,pl,rgas)
@@ -1179,7 +1185,7 @@ SUBROUTINE RFLU_NSCBC_CompSecondPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertCvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     tr = MixtPerf_T_DPR(rr,pr,rgas)
@@ -1221,7 +1227,7 @@ SUBROUTINE RFLU_NSCBC_CompSecondPatchFlux(pRegion,pPatch)
     IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertCvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
     END IF
-   END IF
+   END IF !specUsed
 #endif
     ELSE
     ah = MixtPerf_C_GHoVm2(ggas,Hh,2.0_RFREAL*sh) ! NOTE factor of 2
@@ -3832,15 +3838,15 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
   REAL(RFREAL), DIMENSION(:,:), POINTER :: cv,dv,gv,vals
   TYPE(t_global), POINTER :: global
 
-  #ifdef SPEC
+#ifdef SPEC
 
   INTEGER :: iCvSpecProducts
   REAL(RFREAL) :: YProducts
   REAL(RFREAL), DIMENSION(:,:), POINTER :: pCvSpec
   TYPE(t_spec_input), POINTER :: pSpecInput
 
-  #endif 
-  !Fred - 12/29/20 - Adding in species module to NSCBC init
+#endif 
+!Fred - 12/29/20 - Adding in species module to NSCBC init
 
 ! ******************************************************************************
 ! Start
@@ -3855,8 +3861,10 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
 ! ******************************************************************************
   
 #ifdef SPEC
+  IF ( global%specUsed .EQV. .TRUE. ) THEN
   pCvSpec => pRegion%spec%cv
   pSpecInput => pRegion%specInput
+  END IF
 #endif
   
   indCp  = pRegion%mixtInput%indCp
@@ -3891,6 +3899,7 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
     rwl = pRegion%mixt%cv(CV_MIXT_ZMOM,c1)
     rel = pRegion%mixt%cv(CV_MIXT_ENER,c1)
 
+#ifdef SPEC
     IF ( global%specUsed .EQV. .TRUE. ) THEN
        iCvSpecProducts = SPEC_GetSpeciesIndex(global,pSpecInput,'PRODUCTS')
        YProducts       = pCvSpec(iCvSpecProducts,c1) !Get local species fraction
@@ -3900,6 +3909,7 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
        CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__) ! Defensive coding    
 
     END IF !SpecUsed
+#endif
 
     ul = rul/rl
     vl = rvl/rl
@@ -3919,13 +3929,17 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
     pPatch%mixt%cv(CV_MIXT_ZMOM,ifl) = rwl
 
    IF (pRegion%mixtInput%gasModel == GAS_MODEL_MIXT_JWL) THEN
+    Eo = 0.0_RFREAL !Fred - forcing this to zero if using JWL w/o species...will
+                    !cause code to crash at first time step 
+#ifdef SPEC
     IF ( global%specUsed .EQV. .TRUE. ) THEN
         Eo = RFLU_JWL_E_PR(pRegion,pl,rl,YProducts)
         Eo = Eo + 0.5_RFREAL*(ul*ul+vl*vl+wl*wl)  
     ELSE
         WRITE(*,*) 'Error - Must invoke Species module when using JWL NSCBC!!!'
         CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__) ! Defensive coding
-    END IF !SpecUsed   
+    END IF !SpecUsed 
+#endif  
    ELSE 
     Eo = MixtPerf_Eo_DGPUVW(rl,g,Pr,ul,vl,wl)
    END IF !MixtJWL
@@ -4004,7 +4018,9 @@ SUBROUTINE RFLU_NSCBC_InitSW(pRegion,pPatch)
   global => pRegion%global
 
 #ifdef SPEC
+  IF ( global%specUsed .EQV. .TRUE. ) THEN
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
   CALL RegisterFunction(global,'RFLU_NSCBC_InitSW',__FILE__)
@@ -4151,7 +4167,7 @@ SUBROUTINE RFLU_NSCBC_InitSW(pRegion,pPatch)
      IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertCvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
      END IF
-    END IF
+    END IF !specUsed
 #endif
     ELSE
     Eo = MixtPerf_Eo_DGPUVW(rr,g,Pr,ur,vr,wr)
