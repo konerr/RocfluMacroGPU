@@ -111,7 +111,8 @@ MODULE RFLU_ModNSCBC
 
 #ifdef SPEC
    USE ModInterfacesSpecies, ONLY: SPEC_GetSpeciesIndex
-   USE ModSpecies,           ONLY: t_spec_input
+   USE ModSpecies,           ONLY: t_spec_input, &
+                                   t_spec_type     
 #endif
 
 
@@ -2705,12 +2706,6 @@ SUBROUTINE RFLU_NSCBC_CompRhsOF(pRegion,pPatch)
       Pinf = p
     END IF ! bcOptType
 
-    IF (pRegion%mixtInput%gasModel == GAS_MODEL_MIXT_JWL) THEN
-
-    ie = RFLU_JWL_E_PR(pRegion,p,r)
-    a = RFLU_JWL_C_ER(pRegion,ie,r)
-    END IF
-
     lambda1 = un - a
     lambda2 = un
     lambda3 = un
@@ -2769,7 +2764,6 @@ SUBROUTINE RFLU_NSCBC_CompRhsOF(pRegion,pPatch)
 
    IF (pRegion%mixtInput%gasModel == GAS_MODEL_MIXT_JWL) THEN
     
-    !ie = RFLU_JWL_E_PR(pRegion,p,r)
     E  = pCv(CV_MIXT_ENER,ifl)/r !ie + 0.5_RFREAL*(un*un+us*us+ut*ut)
     H  = E+(p/r)
 
@@ -3838,6 +3832,16 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
   REAL(RFREAL), DIMENSION(:,:), POINTER :: cv,dv,gv,vals
   TYPE(t_global), POINTER :: global
 
+  #ifdef SPEC
+
+  INTEGER :: iCvSpecProducts
+  REAL(RFREAL) :: YProducts
+  REAL(RFREAL), DIMENSION(:,:), POINTER :: pCvSpec
+  TYPE(t_spec_input), POINTER :: pSpecInput
+
+  #endif 
+  !Fred - 12/29/20 - Adding in species module to NSCBC init
+
 ! ******************************************************************************
 ! Start
 ! ******************************************************************************
@@ -3849,7 +3853,12 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
 ! ******************************************************************************
 ! Main Body 
 ! ******************************************************************************
-
+  
+#ifdef SPEC
+  pCvSpec => pRegion%spec%cv
+  pSpecInput => pRegion%specInput
+#endif
+  
   indCp  = pRegion%mixtInput%indCp
   indMol = pRegion%mixtInput%indMol
 
@@ -3882,6 +3891,16 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
     rwl = pRegion%mixt%cv(CV_MIXT_ZMOM,c1)
     rel = pRegion%mixt%cv(CV_MIXT_ENER,c1)
 
+    IF ( global%specUsed .EQV. .TRUE. ) THEN
+       iCvSpecProducts = SPEC_GetSpeciesIndex(global,pSpecInput,'PRODUCTS')
+       YProducts       = pCvSpec(iCvSpecProducts,c1) !Get local species fraction
+
+    ELSE
+       WRITE(*,*) 'Error - Must invoke Species module when using JWL NSCBC!!!'
+       CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__) ! Defensive coding    
+
+    END IF !SpecUsed
+
     ul = rul/rl
     vl = rvl/rl
     wl = rwl/rl
@@ -3900,11 +3919,16 @@ SUBROUTINE RFLU_NSCBC_InitOF(pRegion,pPatch)
     pPatch%mixt%cv(CV_MIXT_ZMOM,ifl) = rwl
 
    IF (pRegion%mixtInput%gasModel == GAS_MODEL_MIXT_JWL) THEN
-    Eo = RFLU_JWL_E_PR(pRegion,pl,rl)
-    Eo = Eo + 0.5_RFREAL*(ul*ul+vl*vl+wl*wl)  
+    IF ( global%specUsed .EQV. .TRUE. ) THEN
+        Eo = RFLU_JWL_E_PR(pRegion,pl,rl,YProducts)
+        Eo = Eo + 0.5_RFREAL*(ul*ul+vl*vl+wl*wl)  
+    ELSE
+        WRITE(*,*) 'Error - Must invoke Species module when using JWL NSCBC!!!'
+        CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__) ! Defensive coding
+    END IF !SpecUsed   
    ELSE 
     Eo = MixtPerf_Eo_DGPUVW(rl,g,Pr,ul,vl,wl)
-   END IF 
+   END IF !MixtJWL
 
     pPatch%mixt%cv(CV_MIXT_ENER,ifl) = rl*Eo
   END DO ! ifl

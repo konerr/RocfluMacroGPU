@@ -339,7 +339,10 @@ SUBROUTINE RFLU_BuildPlottingVarNames(pRegion)
   pRegion%plot%pvNameShort(PV_PLAG_MFRC)  = "mfp"
   pRegion%plot%pvNameShort(PV_PLAG_VFRC)  = "vfp"
   pRegion%plot%pvNameShort(PV_PLAG_REYN)  = "reyp"
-  
+  pRegion%plot%pvNameShort(PV_PLAG_XFOR)  = "Fx" ! Rahul forces
+  pRegion%plot%pvNameShort(PV_PLAG_YFOR)  = "Fy" ! Rahul forces
+  pRegion%plot%pvNameShort(PV_PLAG_ZFOR)  = "Fx" ! Rahul forces
+
   pRegion%plot%pvNameLong(PV_PLAG_DIA3) = "Particle mean diameter (3)"
   pRegion%plot%pvNameLong(PV_PLAG_DIA4) = "Particle mean diameter (4)"
   pRegion%plot%pvNameLong(PV_PLAG_NDNS) = "Particle number density"
@@ -349,7 +352,11 @@ SUBROUTINE RFLU_BuildPlottingVarNames(pRegion)
   pRegion%plot%pvNameLong(PV_PLAG_TEMP) = "Particle mean temperature"
   pRegion%plot%pvNameLong(PV_PLAG_MFRC) = "Particle mean mass fraction"                 
   pRegion%plot%pvNameLong(PV_PLAG_VFRC) = "Particle mean volume fraction"                 
-  pRegion%plot%pvNameLong(PV_PLAG_REYN) = "Particle mean reynolds number"                 
+  pRegion%plot%pvNameLong(PV_PLAG_REYN) = "Particle mean reynolds number" 
+  pRegion%plot%pvNameLong(PV_PLAG_XFOR) = "Total hydrodynamic force in x"
+  pRegion%plot%pvNameLong(PV_PLAG_YFOR) = "Total hydrodynamic force in y"
+  pRegion%plot%pvNameLong(PV_PLAG_ZFOR) = "Total hydrodynamic force in z"
+                
 #endif
 
 ! ******************************************************************************
@@ -1564,7 +1571,10 @@ SUBROUTINE RFLU_CountPlottingVars(pRegion)
       pRegion%plot%pv2pvi(PV_PLAG_MFRC) = pRegion%plot%nPv + 8               
       pRegion%plot%pv2pvi(PV_PLAG_VFRC) = pRegion%plot%nPv + 9               
       pRegion%plot%pv2pvi(PV_PLAG_REYN) = pRegion%plot%nPv + 10               
-  
+      pRegion%plot%pv2pvi(PV_PLAG_XFOR) = pRegion%plot%nPv + 11
+      pRegion%plot%pv2pvi(PV_PLAG_YFOR) = pRegion%plot%nPv + 12
+      pRegion%plot%pv2pvi(PV_PLAG_ZFOR) = pRegion%plot%nPv + 13
+
       pRegion%plot%nPv = pRegion%plot%nPv + EV_PLAG_LAST
     END IF ! global%postLag2EulFlag
   END IF ! global%plagUsed

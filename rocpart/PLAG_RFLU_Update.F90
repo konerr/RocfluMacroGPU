@@ -168,8 +168,11 @@ SUBROUTINE PLAG_RFLU_Update(pRegion,iStage)
 ! ============================================================================== 
 !   Invoke RK Update
 ! ============================================================================== 
+
+   IF (global%currentTime .GE. pRegion%mixtInput%prepRealVal25) THEN 
      CALL RkUpdateGeneric(pRegion,VAR_TYPE_POINT,iStage,1,pPlag%nPcls,1, & 
                           pPlag%nCv,pPlag%cv,pPlag%cvOld,pPlag%rhs,pPlag%rhsSum)
+   END IF !currentTime -- Particle "freezing" option
 
 ! ============================================================================== 
 !   Continuous Random Walk implementation for particle velocity fluctuation                         

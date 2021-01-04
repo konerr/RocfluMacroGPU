@@ -184,7 +184,9 @@ SUBROUTINE ReadInitFlowSection(regions)
   keys(50) = 'IVAL19'
 ! Fred - end
 
-  keys(51) = 'FRZTIME'
+! Fred - Particle Unfreezing Time 
+  keys(51) = 'RVAL25'
+! Fred - end 
 
   CALL ReadSection(global,IF_INPUT,nVals,keys,vals,defined )
 
@@ -527,7 +529,7 @@ SUBROUTINE ReadInitFlowSection(regions)
     END IF ! defined
 
     IF ( defined(51) .EQV. .FALSE. ) THEN
-      regions(iReg)%mixtInput%prepRealVal25 = 0.0_RFREAL
+      regions(iReg)%mixtInput%prepRealVal25 = 0.0_RFREAL !Default is no particle freeze
     ELSE
       regions(iReg)%mixtInput%prepRealVal25 = vals(51)
     END IF ! defined

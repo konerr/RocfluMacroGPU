@@ -268,8 +268,11 @@ MODULE ModParameters
                         PV_PLAG_TEMP = 20, & 
                         PV_PLAG_MFRC = 21, &   
                         PV_PLAG_VFRC = 22, &   
-                        PV_PLAG_REYN = 23, &   
-                        PV_XXXX_NVAR = 23
+                        PV_PLAG_REYN = 23, & 
+                        PV_PLAG_XFOR = 24, & ! Rahul Particle forces output
+                        PV_PLAG_YFOR = 25, & ! Rahul Particle forces output
+                        PV_PLAG_ZFOR = 26, & ! Rahul Particle forces output
+                        PV_XXXX_NVAR = 26
 
   INTEGER, PARAMETER :: GRC_MIXT_DENS =  1, &   ! dr/dx, dr/dy, or dr/dz
                         GRC_MIXT_XVEL =  2, &   ! du/dx, du/dy, or du/dz  

@@ -166,7 +166,6 @@ SUBROUTINE SPEC_RFLU_InitFlowHardCode(pRegion)
       IF ( pRegion%specInput%nSpecies == 2 ) THEN
 
         iCvSpecAir       = SPEC_GetSpeciesIndex(global,pSpecInput,'AIR')
-       !iCvSpecExplosive = SPEC_GetSpeciesIndex(global,pSpecInput,'EXPLOSIVE')
         iCvSpecProducts  = SPEC_GetSpeciesIndex(global,pSpecInput,'PRODUCTS')
 
         DO icg = 1,pGrid%nCellsTot
@@ -174,12 +173,10 @@ SUBROUTINE SPEC_RFLU_InitFlowHardCode(pRegion)
           y = pGrid%cofg(YCOORD,icg)
           rad = SQRT(x**2.0_RFREAL + y**2.0_RFREAL)
           IF ( rad <= pMixtInput%prepRealVal1 ) THEN
-!           pCvSpec(iCvSpecExplosive,icg) = 1.0_RFREAL
             pCvSpec(iCvSpecAir,icg)       = 0.0_RFREAL
             pCvSpec(iCvSpecProducts,icg)  = 1.0_RFREAL
           ELSE
             pCvSpec(iCvSpecAir,icg)       = 1.0_RFREAL
-!           pCvSpec(iCvSpecExplosive,icg) = 0.0_RFREAL
             pCvSpec(iCvSpecProducts,icg)  = 0.0_RFREAL
           END IF
         END DO ! icg
@@ -191,13 +188,31 @@ SUBROUTINE SPEC_RFLU_InitFlowHardCode(pRegion)
 
    CASE ( "shktb" )
 
+    IF ( pRegion%specInput%nSpecies == 2 ) THEN
+
      iCvSpecAir       = SPEC_GetSpeciesIndex(global,pSpecInput,'AIR')
-       !iCvSpecExplosive = SPEC_GetSpeciesIndex(global,pSpecInput,'EXPLOSIVE')
      iCvSpecProducts  = SPEC_GetSpeciesIndex(global,pSpecInput,'PRODUCTS')
+
+     DO icg = 1,pGrid%nCellsTot
+          x = pGrid%cofg(XCOORD,icg)
+
     
-     pCvSpec(iCvSpecAir,icg)       = 1.0_RFREAL
-     pCvSpec(iCvSpecProducts,icg)  = 0.0_RFREAL
-     ! Fred - just to let channeling study go on...change later to make general 
+      IF (x .LE. pMixtInput%prepRealVal12 .AND. x .GE. pMixtInput%prepRealVal5) THEN 
+       pCvSpec(iCvSpecAir,icg)       = 0.0_RFREAL
+       pCvSpec(iCvSpecProducts,icg)  = 1.0_RFREAL
+    
+      ELSE
+       pCvSpec(iCvSpecAir,icg)       = 1.0_RFREAL
+       pCvSpec(iCvSpecProducts,icg)  = 0.0_RFREAL
+      END IF !x
+
+     END DO !icg
+    ELSE
+
+     WRITE(errorString,'(A,1X,I2)') 'Should be:',pRegion%specInput%nSpecies
+     CALL ErrorStop(global,ERR_SPEC_NSPEC_INVALID,__LINE__,TRIM(errorString))
+
+    END IF !nSpecies
 ! ==============================================================================
 !   Generic compressible gravity current
 ! ==============================================================================

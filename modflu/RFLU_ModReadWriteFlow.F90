@@ -83,13 +83,13 @@ MODULE RFLU_ModReadWriteFlow
                                BuildFileNameUnsteadyVTK, &
                                BuildFileNameSteadyPVTK, &
                                BuildFileNameUnsteadyPVTK
-
 #ifdef SPEC
   USE ModSpecies, ONLY: t_spec_input, &
                         t_spec_type
   USE ModInterfacesSpecies, ONLY: SPEC_GetSpeciesIndex
 #endif
  !Fred - Adding Paraview output for species fractions - 11/1/17
+
 
   USE ModInterfaces, ONLY: RFLU_GetCvLoc
 
@@ -2154,6 +2154,7 @@ MODULE RFLU_ModReadWriteFlow
     LOGICAL :: plagFlag
     INTEGER :: iLocTp,iLocUp,iLocYp,iLocdp3,iLocdp4,iLocndp
     INTEGER :: iLocReyp,iLocVp,iLocWp,iLocVFp
+    INTEGER :: iLocXFor,iLocYFor,iLocZFor
     REAL(RFREAL) :: Tp,up!,xc,xsr,Yp
 !    REAL(RFREAL), DIMENSION(:), ALLOCATABLE :: tv
 #endif
@@ -2165,9 +2166,9 @@ MODULE RFLU_ModReadWriteFlow
   REAL(RFREAL), DIMENSION(:,:), POINTER :: pCvSpec
   TYPE(t_spec_input), POINTER :: pSpecInput
   TYPE(t_spec_type), POINTER :: pSpecType
-#endif
-
-
+#endif 
+!Fred - For Species plotting capability
+  
 ! ==============================================================================
 !   Arguments
 ! ==============================================================================
@@ -2206,7 +2207,7 @@ MODULE RFLU_ModReadWriteFlow
                                                    'PRODUCTS')
     END IF
 #endif
-!Fred - Adding species plotting capabilities - 5/2/19
+!Fred - Adding species plotting capabilities
 
     CALL RegisterFunction(global,'RFLU_WriteVTK',__FILE__)
 
@@ -2358,6 +2359,9 @@ MODULE RFLU_ModReadWriteFlow
     iLocYp = pRegion%plot%pv2pvi(PV_PLAG_MFRC)
     iLocVFp = pRegion%plot%pv2pvi(PV_PLAG_VFRC)
     iLocReyp = pRegion%plot%pv2pvi(PV_PLAG_REYN)
+    iLocXFor = pRegion%plot%pv2pvi(PV_PLAG_XFOR)
+    iLocYFor = pRegion%plot%pv2pvi(PV_PLAG_YFOR)
+    iLocZFor = pRegion%plot%pv2pvi(PV_PLAG_ZFOR)
 
     IF ( (iLocdp3 /= CRAZY_VALUE_INT) .AND. &
          (iLocdp4 /= CRAZY_VALUE_INT) .AND. &
@@ -2368,7 +2372,10 @@ MODULE RFLU_ModReadWriteFlow
          (iLocTp /= CRAZY_VALUE_INT) .AND. &
          (iLocYp /= CRAZY_VALUE_INT) .AND. &
          (iLocVFp /= CRAZY_VALUE_INT) .AND. &
-         (iLocReyp /= CRAZY_VALUE_INT) ) THEN
+         (iLocReyp /= CRAZY_VALUE_INT) .AND. &
+         (iLocXFor /= CRAZY_VALUE_INT) .AND. &
+         (iLocYFor /= CRAZY_VALUE_INT) .AND. &
+         (iLocZFor /= CRAZY_VALUE_INT) ) THEN
       plagFlag = .TRUE.
     END IF ! iLocUp
 
@@ -2392,14 +2399,18 @@ MODULE RFLU_ModReadWriteFlow
          var = pPv(iLocVFp,1:Ne))
   E_IO = VTK_VAR_XML(NC_NN = Ne, varname = 'Particle Reynolds Number', &
          var = pPv(iLocReyp,1:Ne))
+  E_IO = VTK_VAR_XML(NC_NN = Ne, varname = 'Hydrodynamic Force', &
+         varX=pPv(iLocXFor,1:Ne), &
+         varY=pPv(iLocYFor,1:Ne), &
+         varZ=pPv(iLocZFor,1:Ne)) ! Rahul Write Eulerian fiels of particle forces
 
 #endif
 
 #ifdef SPEC
-
+  IF ( global%specUsed .EQV. .TRUE. ) THEN
   E_IO = VTK_VAR_XML(NC_NN = Ne, varname = 'Explosive Mass Fraction', &
          var = pCvSpec(iCvSpecProducts,1:Ne))
-
+  END IF
 #endif
 !Fred - Adding species plotting options for PARAVIEW files - 11/1/17
   
@@ -2417,7 +2428,7 @@ MODULE RFLU_ModReadWriteFlow
 
 #ifdef PLAG
     CALL RFLU_DestroyPlottingVarMaps(pRegion)
-!    CALL RFLU_DestroyPlottingVars(pRegion)
+    CALL RFLU_DestroyPlottingVars(pRegion)
 #endif
 
 ! ******************************************************************************
@@ -2476,7 +2487,15 @@ MODULE RFLU_ModReadWriteFlow
       E_IO = PVTK_VAR_XML(varname = 'Particle Mass Fraction', tp='Float64')
       E_IO = PVTK_VAR_XML(varname = 'Particle Volume Fraction', tp='Float64')
       E_IO = PVTK_VAR_XML(varname = 'Particle Reynolds Number', tp='Float64')
+      E_IO = PVTK_VAR_XML(Nc = 3, varname = 'Hydrodynamic Force', tp='Float64' )
 #endif
+
+#ifdef SPEC
+IF ( global%specUsed .EQV. .TRUE. ) THEN
+      E_IO = PVTK_VAR_XML(varname = 'Explosive Mass Fraction', tp='Float64')    
+END IF
+#endif
+
       E_IO = PVTK_DAT_XML(var_location = 'cell', var_block_action = 'Close') 
       E_IO = PVTK_END_XML()
 
@@ -3166,7 +3185,7 @@ MODULE RFLU_ModReadWriteFlow
     CALL RFLU_CountPlottingVars(pRegion)
     CALL RFLU_CreatePlottingVarMaps(pRegion)
     CALL RFLU_BuildPlottingVarMaps(pRegion)
-    CALL RFLU_PrintPlottingVarsInfo(pRegion)
+    !CALL RFLU_PrintPlottingVarsInfo(pRegion)
     CALL RFLU_CreatePlottingVars(pRegion)
     CALL RFLU_ComputePlottingVarsWrapper(pRegion)
 
