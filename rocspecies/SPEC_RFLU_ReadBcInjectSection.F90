@@ -67,6 +67,10 @@
 !      for all species. Individual species can be overridden by specifying
 !      the appropriate keyword SPECn. 
 !
+!   2. Specifically, this routine is written for a two-species flow field.
+!      If a simulation incorporates 3+ species with injection, this subroutine
+!      must be modified to add additional keys/vals for the additional species
+!      Fred - 1/8/21
 !******************************************************************************
 !
 ! $Id: SPEC_RFLU_ReadBcInjectSection.F90,v 1.1.1.1 2015/01/23 22:57:50 tbanerjee Exp $

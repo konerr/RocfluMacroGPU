@@ -308,7 +308,9 @@ SUBROUTINE RFLU_BXV_CompEnergyPatch(pRegion,pPatch)
   global => pRegion%global
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN      
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
   CALL RegisterFunction(global,'RFLU_BXV_CompEnergyPatch',__FILE__)
@@ -364,8 +366,8 @@ SUBROUTINE RFLU_BXV_CompEnergyPatch(pRegion,pPatch)
 
     IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertcvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
-        END IF
-      END IF
+    END IF
+    END IF !specUsed
 #endif
     ELSE
 
@@ -500,8 +502,8 @@ SUBROUTINE RFLU_BXV_CompMomEnergyPatch(pRegion,pPatch)
 
     IF (scalarConvFlag .EQV. .TRUE.) THEN
   CALL RFLU_ScalarConvertcvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
-        END IF
-      END IF
+    END IF
+    END IF !specUsed
 #endif
     ELSE
     Eo = MixtPerf_Eo_GRTUVW(g,gc,T,u,v,w)
@@ -1853,9 +1855,9 @@ SUBROUTINE RFLU_BXV_ReadVarsWrapper(pRegion)
       CALL RFLU_BXV_ReadVarsASCII(pRegion)
 !    ELSE IF ( global%solutFormat == FORMAT_BINARY ) THEN
 ! BBR - begin
-       ELSE IF ( global%solutFormat == FORMAT_BINARY .OR. & 
-                global%solutFormat == FORMAT_BINARY_L .OR. &
-                global%solutFormat == FORMAT_BINARY_B ) THEN
+     ELSE IF ( global%solutFormat == FORMAT_BINARY .OR. & 
+               global%solutFormat == FORMAT_BINARY_L .OR. &
+               global%solutFormat == FORMAT_BINARY_B ) THEN
 ! BBR - end 
       CALL RFLU_BXV_ReadVarsBinary(pRegion)
     ELSE
@@ -2010,7 +2012,9 @@ SUBROUTINE RFLU_BXV_SetDependentVarsPatch(pRegion,pPatch)
   pGv => pRegion%mixt%gv ! NOTE gv taken from cells for now
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
   indCp  = pRegion%mixtInput%indCp
@@ -2080,7 +2084,7 @@ SUBROUTINE RFLU_BXV_SetDependentVarsPatch(pRegion,pPatch)
              scalarConvFlag = .FALSE.
          ELSE
              scalarConvFlag = .TRUE.
-    CALL RFLU_ScalarConvertCvCons2Prim(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
+             CALL RFLU_ScalarConvertCvCons2Prim(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
          END IF
 
           DO ifl = 1,pPatch%nBFaces
@@ -2106,28 +2110,6 @@ SUBROUTINE RFLU_BXV_SetDependentVarsPatch(pRegion,pPatch)
             iCvSpecProducts = SPEC_GetSpeciesIndex(global,pSpecInput,'PRODUCTS')
             Y = pRegion%spec%cv(iCvSpecProducts,icg)
 
-            IF (e .LE. 0.0_RFREAL .OR. IsNan(r) .EQV. .TRUE. & 
-                  .OR. IsNan(e) .EQV. .TRUE.) THEN
-
-
-            r = pRegion%mixt%cv(CV_MIXT_DENS,icg)
-            u = pRegion%mixt%cv(CV_MIXT_XMOM,icg)/r
-            v = pRegion%mixt%cv(CV_MIXT_YMOM,icg)/r
-            w = pRegion%mixt%cv(CV_MIXT_ZMOM,icg)/r
-            Eo = pRegion%mixt%cv(CV_MIXT_ENER,icg)/r
-
-            Vm2 = u*u + v*v + w*w
-            e = Eo - 0.5_RFREAL*Vm2
-
-            pCv(CV_MIXT_DENS,ifl) = r
-            pCv(CV_MIXT_XMOM,ifl) = r*u
-            pCv(CV_MIXT_YMOM,ifl) = r*v
-            pCv(CV_MIXT_ZMOM,ifl) = r*w
-            pCv(CV_MIXT_ENER,ifl) = r*Eo 
-
-            END IF
-!Fred - Test to see if this resolves APS run issues...remove if not - 10/13/17 
-
             CALL RFLU_JWL_ComputePressureMixt(pRegion,icg,ggas,rgas,e,r,Y,a,eJWL,ePerf,p,T)
 
             pDv(DV_MIXT_PRES,ifl) = p
@@ -2136,9 +2118,9 @@ SUBROUTINE RFLU_BXV_SetDependentVarsPatch(pRegion,pPatch)
           END DO!FRED - Added JWL EOS capabilities - 9/11/15
 
         IF (scalarConvFlag .EQV. .TRUE.) THEN
-  CALL RFLU_ScalarConvertcvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
+        CALL RFLU_ScalarConvertcvPrim2Cons(pRegion,pRegion%spec%cv,pRegion%spec%cvState)
         END IF
-      END IF
+      END IF !specUsed
 #endif
 ! ------------------------------------------------------------------------------
 !       Default
@@ -2545,9 +2527,9 @@ SUBROUTINE RFLU_BXV_WriteVarsWrapper(pRegion)
       CALL RFLU_BXV_WriteVarsASCII(pRegion)
 !    ELSE IF ( global%solutFormat == FORMAT_BINARY ) THEN
 ! BBR - begin
-       ELSE IF ( global%solutFormat == FORMAT_BINARY .OR. & 
-                global%solutFormat == FORMAT_BINARY_L .OR. &
-                global%solutFormat == FORMAT_BINARY_B ) THEN
+    ELSE IF ( global%solutFormat == FORMAT_BINARY .OR. & 
+              global%solutFormat == FORMAT_BINARY_L .OR. &
+              global%solutFormat == FORMAT_BINARY_B ) THEN
 ! BBR - end 
       CALL RFLU_BXV_WriteVarsBinary(pRegion)
     ELSE
