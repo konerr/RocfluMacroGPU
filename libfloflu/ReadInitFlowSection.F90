@@ -104,7 +104,7 @@ SUBROUTINE ReadInitFlowSection(regions)
 
 ! Rahul- I/P for grid dx, dy and dz
 ! Fred - Variable JWL density
-  INTEGER, PARAMETER :: NVALS_MAX = 53
+  INTEGER, PARAMETER :: NVALS_MAX = 51
 ! Rahul - end
 
   CHARACTER(10) :: keys(NVALS_MAX)
@@ -187,11 +187,6 @@ SUBROUTINE ReadInitFlowSection(regions)
 ! Fred - Particle Unfreezing Time 
   keys(51) = 'RVAL25'
 ! Fred - end 
-
-! Fred - Cyldet File options
-  keys(52) = 'PROP'
-  keys(53) = 'FRACTAL'
-! Fred - end
 
   CALL ReadSection(global,IF_INPUT,nVals,keys,vals,defined )
 
@@ -537,18 +532,6 @@ SUBROUTINE ReadInitFlowSection(regions)
       regions(iReg)%mixtInput%prepRealVal25 = 0.0_RFREAL !Default is no particle freeze
     ELSE
       regions(iReg)%mixtInput%prepRealVal25 = vals(51)
-    END IF ! defined
-
-    IF ( defined(52) .EQV. .FALSE. ) THEN
-      regions(iReg)%mixtInput%prepIntValProp = 0 !default is 0 - no
-    ELSE
-      regions(iReg)%mixtInput%prepIntValProp = vals(52)
-    END IF ! defined
-
-    IF ( defined(53) .EQV. .FALSE. ) THEN
-      regions(iReg)%mixtInput%prepIntValFractal = 0 !default is 0 - no
-    ELSE
-      regions(iReg)%mixtInput%prepIntValFractal = vals(53)
     END IF ! defined
   END DO ! iReg         
 

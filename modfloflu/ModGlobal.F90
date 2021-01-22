@@ -469,7 +469,8 @@ MODULE ModGlobal
                postLag2EulFlag,postMergeFlag,postPlotMixtCvFlag, &
                postPlotMixtDvFlag,postPlotMixtGvFlag,postPlotPatchFlag, &
                postPlotVolFlag,postSpecFlag,postVortFlag,postVortCoreFlag, &
-               postWriteMergeFlag,postZoneVirtFlag
+               postWriteMergeFlag,postZoneVirtFlag, &
+               postPropFlag,postFractalFlag !Fred - cyldet post-processing flags
     INTEGER :: postInterpOrder,postInterpType,postNFringes,postNServers, &
                postOutputFormat,postPartNumber,postPartNumberSave,postPlotType, &
                postSchType

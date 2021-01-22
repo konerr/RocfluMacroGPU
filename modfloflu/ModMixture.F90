@@ -109,8 +109,7 @@ MODULE ModMixture
     INTEGER :: prepIntVal1,prepIntVal2,prepIntVal3,prepIntVal4,prepIntVal5, &
                prepIntVal6,prepIntVal7,prepIntVal8,prepIntVal9,prepIntVal10, &
                prepIntVal11,prepIntVal12,prepIntVal13,prepIntVal14,prepIntVal15, &
-               prepIntVal16,prepIntVal17,prepIntVal18,prepIntVal19, & !Fred - Coll model
-               prepIntValFractal,prepIntValProp         !Fred - cyldet output options
+               prepIntVal16,prepIntVal17,prepIntVal18,prepIntVal19 !Fred - Coll model
     REAL(RFREAL) :: prepRealVal1,prepRealVal2,prepRealVal3,prepRealVal4, & 
                     prepRealVal5,prepRealVal6,prepRealVal7,prepRealVal8, & 
                     prepRealVal9,prepRealVal10,prepRealVal11,prepRealVal12, &

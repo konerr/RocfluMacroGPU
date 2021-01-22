@@ -3942,7 +3942,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   END DO
 
 #ifdef PLAG
-  IF (pRegion%mixtInput%prepIntValProp == 1) THEN  
+  IF (global%postPropFlag .EQV. .TRUE. ) THEN  
   WRITE(iFileName2,'(A,1PE11.5,A)') TRIM(global%outDir)// &
                                  TRIM(global%casename)// &
                                  '.CellProp_',global%currentTime,'.dat'
@@ -4008,7 +4008,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 !Fred - 2D Fractal Dimension Calculation: 5/29/19 
 
 #ifdef PLAG
-  IF (pRegion%mixtInput%prepIntValFractal == 1) THEN
+  IF (global%postFractalFlag .EQV. .TRUE.) THEN
   IF (global%plagUsed .EQV. .TRUE.) THEN
    IF ( pPlag%nPcls > 0 ) THEN
 

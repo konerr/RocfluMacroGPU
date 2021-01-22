@@ -116,8 +116,6 @@ IVAL15  0                  ! Wave number in z - mode 2
 IVAL16  1                  ! Something for random init
 IVAL17  1                  ! Number of random modes for multimodal init
 IVAL18  1                  ! Max wavenumber for multimodal init
-PROP    0                  ! Write .prop files for cyldet: 0 = no (default), 1 = yes
-FRACTAL 0                  ! Write fractal dimension files: 0 = no (default), 1 = yes
 NVALSRAND 100              ! Number of random values to be genrated
 #
 WAVNUMRANGE 2
@@ -218,6 +216,8 @@ DISCFLAG   0
 PLTVOLFLAG 1
 PEULFLAG   1
 PLAGFRAC   0.25
+PROP       0    ! Write .prop files for cyldet: 0 = no (default), 1 = yes
+FRACTAL    0    ! Write fractal dimension files: 0 = no (default), 1 = yes
 #
 
 # MISC
