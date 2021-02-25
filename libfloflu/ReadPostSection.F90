@@ -86,7 +86,7 @@ SUBROUTINE ReadPostSection(global)
 
 ! ... local variables
   INTEGER :: nVals  
-  INTEGER, PARAMETER :: NVALS_MAX = 25
+  INTEGER, PARAMETER :: NVALS_MAX = 27
 
   CHARACTER(CHRLEN) :: RCSIdentString
   CHARACTER(10) :: keys(NVALS_MAX)  
@@ -130,6 +130,8 @@ SUBROUTINE ReadPostSection(global)
   keys(23) = 'MIXTDVFLAG'
   keys(24) = 'MIXTGVFLAG'
   keys(25) = 'VIRTFLAG'
+  keys(26) = 'PROP'
+  keys(27) = 'FRACTAL' 
 
   CALL ReadSection(global,IF_INPUT,nVals,keys,vals,defined)
 
@@ -304,6 +306,25 @@ SUBROUTINE ReadPostSection(global)
       global%postZoneVirtFlag = .FALSE.
     END IF ! NINT(vals)
   END IF ! defined
+
+!Fred - Cyldet post-processing options
+  IF ( defined(26) .EQV. .TRUE. ) THEN
+    IF ( NINT(vals(26)) == 1 ) THEN
+      global%postPropFlag = .TRUE.
+    ELSE
+      global%postPropFlag = .FALSE.
+    END IF ! NINT(vals)
+  END IF ! defined
+
+  IF ( defined(27) .EQV. .TRUE. ) THEN
+    IF ( NINT(vals(27)) == 1 ) THEN
+      global%postFractalFlag = .TRUE.
+    ELSE
+      global%postFractalFlag = .FALSE.
+    END IF ! NINT(vals)
+  END IF ! defined
+
+
 
 ! finalize
 

@@ -3420,8 +3420,10 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   TotCells = pGrid%nCells
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN 
   pCvSpec    => pRegion%spec%cv
   pSpecInput => pRegion%specInput
+  END IF
 #endif
 
 #ifdef PLAG
@@ -3531,6 +3533,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'Vol')
   END IF ! global%error 
 
+  !CellData
   ALLOCATE(rho(TotCells),STAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
@@ -3549,6 +3552,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'zLoc')
   END IF ! global%error
 
+  !PartData
   ALLOCATE(densGaspCell(TotCells),STAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
@@ -3562,6 +3566,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   END IF ! global%error
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   ALLOCATE(Yp(Kmax+rLayers0),STAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
@@ -3579,7 +3584,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   IF ( global%error /= ERR_NONE ) THEN
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'presGas')
   END IF ! global%error
-
+  END IF !specUsed
 #endif
 
 ! ********************************************************************************
@@ -3598,6 +3603,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   END DO
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   DO rlayer = 1,Kmax+rLayers0
     Yp(rlayer)       = 0.0_RFREAL 
     Inv_Yp(rlayer)   = 0.0_RFREAL
@@ -3607,6 +3613,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   iCvSpecAir = SPEC_GetSpeciesIndex(global,pSpecInput,'AIR')
   iCvSpecProducts = SPEC_GetSpeciesIndex(global,pSpecInput, &
                                                    'PRODUCTS')
+  END IF !specUsed
 #endif
 
 
@@ -3708,6 +3715,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 #endif
  
 #ifdef SPEC
+        IF (global%specUsed .EQV. .TRUE.) THEN
           YProducts = pCvSpec(iCvSpecProducts,icg)
           Yp(rLayer+rLayers0) = Yp(rLayer+rLayers0) + (YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg)) &
                                                      * pGrid%vol(icg)
@@ -3716,7 +3724,8 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 
           Mix_num(rLayer+rLayers0) = Mix_num(rLayer+rLayers0) + &
                   (YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg))* &
-                  (1.0_RFREAL-(YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg))) * pGrid%vol(icg)    
+                  (1.0_RFREAL-(YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg))) * pGrid%vol(icg)   
+         END IF !Spec 
 #endif
 
         Vol(rLayer+rLayers0)     = Vol(rlayer+rLayers0) + pGrid%vol(icg)  
@@ -3735,9 +3744,11 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 #endif
 
 #ifdef SPEC
+    IF (global%plagUsed .EQV. .TRUE.) THEN
     Yp(rLayer+rLayers0)  = Yp(rlayer+rLayers0)/Vol(rLayer+rLayers0)
     Inv_Yp(rLayer+rLayers0)  = Inv_Yp(rlayer+rLayers0)/Vol(rLayer+rLayers0)
     Mix_num(rLayer+rLayers0)  = Mix_num(rlayer+rLayers0)/Vol(rLayer+rLayers0)
+    END IF !Spec
 #endif
   END DO
 
@@ -3782,6 +3793,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 #endif
 
 #ifdef SPEC
+          IF (global%plagUsed .EQV. .TRUE.) THEN
           YProducts = pCvSpec(iCvSpecProducts,icg)
           Yp(rLayers0-rLayer+1) = Yp(rLayers0-rLayer+1)+(YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg)) &
                                                      * pGrid%vol(icg)
@@ -3792,7 +3804,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
                   (YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg))* &
                   (1.0_RFREAL-(YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg)))*pGrid%vol(icg)
 
-
+          END IF !Spec
 #endif
 
 
@@ -3843,6 +3855,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 #endif
 
 #ifdef SPEC
+          IF (global%plagUsed .EQV. .TRUE.) THEN
           YProducts_beg = pCvSpec(iCvSpecProducts,icgBeg)
           YProducts_end = pCvSpec(iCvSpecProducts,icgEnd)
           Yp(rLayers0-rLayer+1)    = Yp(rlayers0-rLayer+1) &
@@ -3859,7 +3872,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
                   (1.0_RFREAL-(YProducts_beg/pRegion%mixt%cv(CV_MIXT_DENS,icgBeg)))*pGrid%vol(icgBeg)+ &
                   (YProducts_end/pRegion%mixt%cv(CV_MIXT_DENS,icgEnd))* &
                   (1.0_RFREAL-(YProducts_end/pRegion%mixt%cv(CV_MIXT_DENS,icgEnd)))*pGrid%vol(icgEnd)
-
+          END IF !specUsed 
 
 
 #endif
@@ -3883,9 +3896,11 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 #endif
 
 #ifdef SPEC
+    IF (global%plagUsed .EQV. .TRUE.) THEN
     Yp(rLayers0-rLayer+1)     = Yp(rlayers0-rLayer+1)/Vol(rLayers0-rLayer+1)
     Inv_Yp(rLayers0-rLayer+1)     = Inv_Yp(rlayers0-rLayer+1)/Vol(rLayers0-rLayer+1)
     Mix_num(rLayers0-rLayer+1)     = Mix_num(rlayers0-rLayer+1)/Vol(rLayers0-rLayer+1)
+    END IF !specUsed
 #endif
   END DO
 
@@ -3927,10 +3942,10 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   END DO
 
 #ifdef PLAG
+  IF (global%postPropFlag .EQV. .TRUE. ) THEN  
   WRITE(iFileName2,'(A,1PE11.5,A)') TRIM(global%outDir)// &
                                  TRIM(global%casename)// &
                                  '.CellProp_',global%currentTime,'.dat'
- IF(1==1) THEN
    OPEN(3245,FILE=iFileName2,FORM='FORMATTED',STATUS='UNKNOWN', &
           IOSTAT=errorFlag)
 
@@ -3987,11 +4002,14 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
                                             VR  
      END DO ! iPcl
   END IF
-     END IF!1==1
+  END IF !Prop
 #endif
+
 !Fred - 2D Fractal Dimension Calculation: 5/29/19 
 
 #ifdef PLAG
+  IF (global%postFractalFlag .EQV. .TRUE.) THEN
+  IF (global%plagUsed .EQV. .TRUE.) THEN
    IF ( pPlag%nPcls > 0 ) THEN
 
       niter = 14       !Max number of refinements
@@ -4108,6 +4126,8 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
        WRITE(3247,'(3(1X,E13.6))') global%currentTime*1.0E6_RFREAL,Dh,pPlag%nPcls
 !Writing fractal dimension for current time (in microseconds) to file
  END IF !nPcls
+ END IF !plagUsed
+ END IF !Fractal
 #endif
 !End Fractal Dimension Calculator--------------------------------------------
 
@@ -4202,7 +4222,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   END IF ! global%error
 
 #ifdef SPEC
-
+  IF (global%specUsed .EQV. .TRUE.) THEN
   DEALLOCATE(Yp,STAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
@@ -4220,7 +4240,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
   IF ( global%error /= ERR_NONE ) THEN
     CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'Vol')
   END IF ! global%error
-
+  END IF !specUsed
 #endif
 
 
@@ -4228,6 +4248,7 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 ! Close file
 ! ******************************************************************************
 
+  
   CLOSE(IF_EXTR_DATA1,IOSTAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= 0 ) THEN
@@ -4391,8 +4412,10 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   Nz_g = pGrid%nCells/(Nx_g * Ny_g)              ! no of cells in z direction
 
 #ifdef SPEC 
+      IF (global%specUsed .EQV. .TRUE.) THEN
         pCvSpec    => pRegion%spec%cv
         pSpecInput => pRegion%specInput
+      END IF !specUsed
 #endif
 
 ! ******************************************************************************
@@ -4425,6 +4448,8 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'veloGas')
   END IF ! global%error
 
+#ifdef PLAG
+  IF (global%plagUsed .EQV. .TRUE.) THEN
   ALLOCATE(vFracE(Nx_g),STAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
@@ -4436,8 +4461,11 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   IF ( global%error /= ERR_NONE ) THEN
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pVelo')
   END IF ! global%error
+  END IF !plagUsed
+#endif
 
 #ifdef SPEC
+       IF (global%specUsed .EQV. .TRUE.) THEN
         ALLOCATE(Yp(Nx_g),STAT=errorFlag)
         global%error = errorFlag
         IF ( global%error /= ERR_NONE ) THEN
@@ -4455,6 +4483,7 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
         IF ( global%error /= ERR_NONE ) THEN
             CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'presGas')
         END IF ! global%error
+       END IF !specUsed
 
 #endif
 
@@ -4470,6 +4499,7 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   pVelo   = 0.0_RFREAL
 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
   Yp      = 0.0_RFREAL
   Inv_Yp  = 0.0_RFREAL
   Mix_num = 0.0_RFREAL
@@ -4477,6 +4507,7 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   iCvSpecAir = SPEC_GetSpeciesIndex(global,pSpecInput,'AIR')
   iCvSpecProducts = SPEC_GetSpeciesIndex(global,pSpecInput, &
                                                  'PRODUCTS')
+  END IF !specUsed
 #endif 
       
 ! ********************************************************************************
@@ -4500,17 +4531,18 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
                      / pRegion%mixt%cv(CV_MIXT_DENS,icg)/(Ny_g*Nz_g)
 
 #ifdef PLAG
-!          IF (global%plagUsed .EQV. .TRUE.)THEN
+          IF (global%plagUsed .EQV. .TRUE.)THEN
               vFracE(i) = vFracE(i) + pRegion%plag%vFracE(1,icg)&
                           /(Ny_g*Nz_g)
               pVelo(i) = pVelo(i) + SQRT(pPv(iLocUp,icg)**2 &
                          + pPv(iLocVp,icg)**2 + pPv(iLocWp,icg)**2) &
                          /(Ny_g*Nz_g)
 
-!          END IF
+          END IF
 #endif
 
 #ifdef SPEC
+         IF (global%specUsed .EQV. .TRUE.) THEN
           YProducts = pCvSpec(iCvSpecProducts,icg)
           Yp(i) = Yp(i) + (YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg)) & 
                           /(Ny_g*Nz_g)
@@ -4521,6 +4553,7 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
                   (YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg))* &   
                   (1.0_RFREAL-(YProducts/pRegion%mixt%cv(CV_MIXT_DENS,icg))) & 
                          /(Ny_g*Nz_g) 
+         END IF !specUsed
 #endif
         END DO
       END DO
@@ -4553,10 +4586,12 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
     IF(global%plagUsed .EQV. .TRUE.)THEN
       IF (global%specUsed .EQV. .TRUE.) THEN !Fred - for species output 
 #ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN
       WRITE(IF_EXTR_DATA1,'(10(1X,E23.16))') pGrid%cofg(XCOORD,i),densGas(i), & 
                                           presGas(i),tempGas(i),veloGas(i), &
                                           vFracE(i),pVelo(i) &
                                           ,Yp(i),Inv_Yp(i),Mix_num(i)
+  END IF !specUsed
 #endif
       ELSE   
       WRITE(IF_EXTR_DATA1,'(7(1X,E23.16))') pGrid%cofg(XCOORD,i),densGas(i), &
@@ -4575,6 +4610,8 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
     CALL ErrorStop(global,ERR_FILE_CLOSE,__LINE__,'File: '//TRIM(iFileName1))
   END IF ! global%error
 
+#ifdef PLAG
+ IF (global%plagUsed .EQV. .TRUE.) THEN
   !write upf and dpf based on 99% volume fraction
 
   vflim = 0.01_RFREAL
@@ -4606,9 +4643,11 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   WRITE(1111,'(3(E23.16,1X))') upf,dpf,global%currentTime
 
   CLOSE(1111)
+ END IF!plagUsed
+#endif
 
 #ifdef PLAG
-
+ IF (global%plagUsed .EQV. .TRUE.) THEN
   Np = pRegion%plag%nPcls
 
   Npe = NINT(0.01*Np*0.5)
@@ -4647,7 +4686,7 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   WRITE(1112,'(3(E23.16,1X))') upf,dpf,global%currentTime
 
   CLOSE(1112)
-
+ END IF !plagUsed 
 #endif
 
 ! ******************************************************************************
@@ -4678,6 +4717,8 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
     CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'veloGas')
   END IF ! global%error
 
+#ifdef PLAG
+ IF (global%plagUsed .EQV. .TRUE.) THEN
   DEALLOCATE(vFracE,STAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
@@ -4689,9 +4730,11 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   IF ( global%error /= ERR_NONE ) THEN
     CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'pVelo')
   END IF ! global%error
+ END IF !plagUsed
+#endif
 
 #ifdef SPEC    
-
+ IF (global%specUsed .EQV. .TRUE.) THEN
   DEALLOCATE(Yp,STAT=errorFlag)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN 
@@ -4709,7 +4752,7 @@ SUBROUTINE RFLU_ExtractFlowDataShktb(pRegion)
   IF ( global%error /= ERR_NONE ) THEN
     CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'Vol') 
   END IF ! global%error   
-
+ END IF !specUsed
 #endif      
 !Fred - End species additions  
 

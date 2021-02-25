@@ -2118,7 +2118,10 @@ MODULE RFLU_ModReadWriteFlow
 ! Notes:
 !   1. Write initial residual and physical time for both steady and unsteady
 !      flows so that could use steady solution as input for unsteady run and
-!      vice versa.
+!      vice versa
+!
+!   2. The species output is currently written assuming a 2 species fluid.
+!      Routine will have to be modified for 3+ species.
 !
 ! ******************************************************************************
 

@@ -531,8 +531,16 @@ SUBROUTINE RFLU_OpenProbeFiles(pRegion)
 !     Generate file name
 ! ------------------------------------------------------------------------------
 
+#ifdef FOLDER
+      WRITE(fname,'(A,I4.4)') &
+!            TRIM(global%outDir)//TRIM(global%casename)//'.prb_',iprobe
+! BBR - begin - Dump probes data file in appropriate folder
+              './Probes/'//TRIM(global%casename)//'.prb_',iprobe
+! BBR - end
+#else 
       WRITE(fname,'(A,I4.4)') TRIM(global%outDir)// & 
                               TRIM(global%casename)//'.prb_',iProbe
+#endif
 
 ! ------------------------------------------------------------------------------
 !     Open file with appropriate options

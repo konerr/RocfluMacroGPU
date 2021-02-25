@@ -216,6 +216,8 @@ DISCFLAG   0
 PLTVOLFLAG 1
 PEULFLAG   1
 PLAGFRAC   0.25
+PROP       0    ! Write .prop files for cyldet: 0 = no (default), 1 = yes
+FRACTAL    0    ! Write fractal dimension files: 0 = no (default), 1 = yes
 #
 
 # MISC

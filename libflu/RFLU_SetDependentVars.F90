@@ -167,9 +167,11 @@ SUBROUTINE RFLU_SetDependentVars(pRegion,icgBeg,icgEnd)
   pDv => pRegion%mixt%dv 
   pGv => pRegion%mixt%gv 
           
-#ifdef SPEC  
+#ifdef SPEC
+  IF (global%specUsed .EQV. .TRUE.) THEN   
   pCvSpec => pRegion%spec%cv
   pSpecInput => pRegion%specInput
+  END IF !specUsed
 #endif
 
   refGamma = global%refGamma
@@ -181,7 +183,9 @@ SUBROUTINE RFLU_SetDependentVars(pRegion,icgBeg,icgEnd)
 
   indVFracE = 0
 #ifdef PLAG    
+  IF (global%plagUsed .EQV. .TRUE.) THEN
   indVFracE = pRegion%plagInput%indVFracE
+  END IF !plagUsed
 #endif
 
   nTol = 1.0E-14_RFREAL
@@ -294,8 +298,10 @@ SUBROUTINE RFLU_SetDependentVars(pRegion,icgBeg,icgEnd)
                              pCv(CV_MIXT_YMOM,icg)*pCv(CV_MIXT_YMOM,icg) + &
                              pCv(CV_MIXT_ZMOM,icg)*pCv(CV_MIXT_ZMOM,icg))
 
+                IF (global%plagUsed .EQV. .TRUE.) THEN
                 r = r/(1.0_RFREAL - pRegion%plag%vFracE(1,indVFracE*icg))          
-      
+                END IF !plagUsed
+
                 pDv(DV_MIXT_PRES,icg) = MixtPerf_P_DEoGVm2(r,Eo,g,Vm2)
                 pDv(DV_MIXT_TEMP,icg) = MixtPerf_T_DPR(r,pDv(DV_MIXT_PRES,icg),gc)
                 pDv(DV_MIXT_SOUN,icg) = MixtPerf_C_GRT(g,gc,pDv(DV_MIXT_TEMP,icg))    
@@ -341,7 +347,9 @@ SUBROUTINE RFLU_SetDependentVars(pRegion,icgBeg,icgEnd)
                              pCv(CV_MIXT_YMOM,icg)*pCv(CV_MIXT_YMOM,icg) + &
                              pCv(CV_MIXT_ZMOM,icg)*pCv(CV_MIXT_ZMOM,icg))
 
+                IF (global%plagUsed .EQV. .TRUE.) THEN
                 r = r/(1.0_RFREAL - pRegion%plag%vFracE(1,indVFracE*icg))
+                END IF
 
                 YExplosive = pCvSpec(iCvSpecExplosive,icg)
                 YProducts  = pCvSpec(iCvSpecProducts,icg)
@@ -562,34 +570,12 @@ SUBROUTINE RFLU_SetDependentVars(pRegion,icgBeg,icgEnd)
 
               e  = Eo - 0.5_RFREAL*Vm2
 
-!IF (IsNan(e) .EQV. .TRUE.) THEN
-!write(*,*) 'Dep Vars..'
-!write(*,*) icg,r,pCv(CV_MIXT_ENER,icg),pCv(CV_MIXT_XMOM,icg),pCv(CV_MIXT_YMOM,icg)
-!  IF (global%plagUsed .EQV. .TRUE.) THEN
-!WRITE(*,*) pRegion%plag%vFracE(1,indVFracE*icg)
-!  END IF
-!          CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__) 
-!END IF
-!IF (e .LT. 0.0_RFREAL) THEN
-!write(*,*) 'Dep Vars..'
-!write(*,*) icg,r,pCv(CV_MIXT_ENER,icg),pCv(CV_MIXT_XMOM,icg),pCv(CV_MIXT_YMOM,icg),e
-!  IF (global%plagUsed .EQV. .TRUE.) THEN
-!WRITE(*,*) pRegion%plag%vFracE(1,indVFracE*icg)
-!  END IF
-!          CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__) 
-!END IF
-!              YProducts = pCvSpec(iCvSpecProducts,icg)
               YProducts = pCvSpec(iCvSpecProducts,icg)
               
               dum = 0.0_RFREAL !Fred - dummy variable for Y correction function
 
               CALL RFLU_JWL_Yfix(pRegion,icg,2,r,e,dum,YProducts,r,e,dum,YProducts) 
 
-              ! Subbu - Debug
-              IF (global%plagUsed .EQV. .TRUE.) THEN
-                 r = r/(1.0_RFREAL - pRegion%plag%vFracE(1,indVFracE*icg))
-              END IF
-              ! Subbu - End Debug
 IF (IsNan(e) .EQV. .TRUE.) THEN
 write(*,*) 'Dep Vars: e is NaN...'
 write(*,*) icg,r,Eo,pCv(CV_MIXT_XMOM,icg),pCv(CV_MIXT_YMOM,icg)
@@ -597,46 +583,19 @@ write(*,*) icg,r,Eo,pCv(CV_MIXT_XMOM,icg),pCv(CV_MIXT_YMOM,icg)
 END IF
 
 IF (e .LE. 0.0_RFREAL) THEN
-
- u = pCv(CV_MIXT_XMOM,icg)/r
- v = pCv(CV_MIXT_YMOM,icg)/r
- w = pCv(CV_MIXT_ZMOM,icg)/r
-
- IF (r .LE. 0.0_RFREAL) THEN
-
- u = pCv(CV_MIXT_XMOM,icg)/r
- v = pCv(CV_MIXT_YMOM,icg)/r
- w = pCv(CV_MIXT_ZMOM,icg)/r
-
- r = 0.1_RFREAL !Reset density...then reset momentum...remove once APS runs finish 
- pCv(CV_MIXT_DENS,icg) = r
- pCv(CV_MIXT_XMOM,icg) = r*u 
- pCv(CV_MIXT_YMOM,icg) = r*v
- pCv(CV_MIXT_ZMOM,icg) = r*w
- END IF
-
 write(*,*) 'Dep Vars: Invoking Enery floor for JWL'
 write(*,*) icg,r,pCv(CV_MIXT_ENER,icg),pCv(CV_MIXT_XMOM,icg),pCv(CV_MIXT_YMOM,icg),e
   e = 1.0E+04_RFREAL 
   pCv(CV_MIXT_ENER,icg) = r*(e+0.5_RFREAL*(u*u+v*v+w*w)) 
 !          CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__) 
-END IF
+END IF !e le 0
 
 
-IF (r .LE. 0.0_RFREAL) THEN
-
- u = pCv(CV_MIXT_XMOM,icg)/r
- v = pCv(CV_MIXT_YMOM,icg)/r
- w = pCv(CV_MIXT_ZMOM,icg)/r
-
- r = 0.15_RFREAL !Reset density...then reset momentum...remove once APS runs finish
- pCv(CV_MIXT_DENS,icg) = r
- pCv(CV_MIXT_XMOM,icg) = r*u
- pCv(CV_MIXT_YMOM,icg) = r*v
- pCv(CV_MIXT_ZMOM,icg) = r*w
- pCv(CV_MIXT_ENER,icg) = r*(e+0.5_RFREAL*(u*u+v*v+w*w))
-END IF
-
+              ! Subbu - Debug
+              IF (global%plagUsed .EQV. .TRUE.) THEN
+                 r = r/(1.0_RFREAL - pRegion%plag%vFracE(1,indVFracE*icg))
+              END IF
+              ! Subbu - End Debug
 
               CALL RFLU_JWL_ComputePressureMixt(pRegion,icg,gAir,gcAir,e,r,YProducts,a, &
                                                 eJWL,ePerf,p,T)
