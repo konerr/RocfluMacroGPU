@@ -119,6 +119,7 @@ MODULE ModMixture
                     prepRealVal24, &  !Fred - Adding 24 to allow for Variable JWL density   
                     prepRealVal25
     REAL(RFREAL) :: iniDens,iniPress,iniTemp,iniVelX,iniVelY,iniVelZ
+    CHARACTER(CHRLEN) :: rBurnFile ! Reactive burn file name
 
 ! - grid motion
 
