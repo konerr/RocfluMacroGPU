@@ -81,7 +81,7 @@ SUBROUTINE ReadInitFlowSection(regions)
   USE ModMixture, ONLY: t_mixt_input
   
   USE ModInterfaces, ONLY: ReadSection, & 
-                           ReadRegionSection  
+                           ReadBothSection
   
   IMPLICIT NONE
 
@@ -105,11 +105,19 @@ SUBROUTINE ReadInitFlowSection(regions)
 ! Rahul- I/P for grid dx, dy and dz
 ! Fred - Variable JWL density
   INTEGER, PARAMETER :: NVALS_MAX = 51
+  INTEGER, PARAMETER :: NSTRVALS_MAX = 1
 ! Rahul - end
 
   CHARACTER(10) :: keys(NVALS_MAX)
   LOGICAL :: defined(NVALS_MAX)
   REAL(RFREAL) :: vals(NVALS_MAX)
+
+  CHARACTER(20) :: strKeys(NSTRVALS_MAX)
+  LOGICAL :: strDefined(NSTRVALS_MAX)
+  CHARACTER(CHRLEN) :: strVals(NSTRVALS_MAX)
+  CHARACTER(256) :: line
+  INTEGER :: ival, errorFlag, nc, iEnd
+
   TYPE(t_global), POINTER :: global
 
 ! ******************************************************************************
@@ -188,7 +196,11 @@ SUBROUTINE ReadInitFlowSection(regions)
   keys(51) = 'RVAL25'
 ! Fred - end 
 
-  CALL ReadSection(global,IF_INPUT,nVals,keys,vals,defined )
+  strKeys(1) = 'RBURNFILE'
+
+  !CALL ReadSection(global,IF_INPUT,nVals,keys,vals,defined )
+  CALL ReadBothSection( global,IF_INPUT,nVals,NSTRVALS_MAX,keys,strKeys, &
+                        vals,strVals,defined,strDefined )
 
   IF ( defined(1) .EQV. .FALSE. ) THEN
     CALL ErrorStop(global,ERR_VAL_UNDEFINED,__LINE__,'INITFLOW-FLAG')
@@ -532,6 +544,14 @@ SUBROUTINE ReadInitFlowSection(regions)
       regions(iReg)%mixtInput%prepRealVal25 = 0.0_RFREAL !Default is no particle freeze
     ELSE
       regions(iReg)%mixtInput%prepRealVal25 = vals(51)
+    END IF ! defined
+
+    IF ( strDefined(1) .EQV. .FALSE. ) THEN
+      regions(iReg)%mixtInput%rBurnFile = "" !Default is no particle freeze
+      global%ifReadFromFile = .FALSE.
+    ELSE
+      regions(iReg)%mixtInput%rBurnFile = TRIM(strVals(1))
+      global%ifReadFromFile = .TRUE.
     END IF ! defined
   END DO ! iReg           
 
