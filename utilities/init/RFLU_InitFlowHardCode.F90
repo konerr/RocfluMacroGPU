@@ -539,7 +539,6 @@ loop:           DO b=1,n-1
               END IF ! global%ifReadFromFile  
 
             END IF ! radius
-END IF ! (1==2)
 
             pCv(CV_MIXT_DENS,icg) = d
             pCv(CV_MIXT_XMOM,icg) = d*u
