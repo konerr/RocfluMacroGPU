@@ -28,6 +28,70 @@ MPIINC=
 MACHINE= $(shell uname -n)
 
 ### Hipergator at UF ######################## 
+ifeq ($(findstring rahul-Dell,$(MACHINE)),rahul-Dell)
+  
+  ifdef TAUDEBUG
+    FC=tau_f90.sh
+    COMP=tau_f90.sh
+    CXX=tau_cxx.sh
+    CXXFLAGS=
+    CXXOPT=
+    LINKER=tau_cxx.sh
+  else
+    FC=mpif90
+    COMP=mpif90
+    CXX=mpic++
+    CXXFLAGS=
+    CXXOPT=
+    LINKER=$(CXX)
+  endif
+
+   CXXLINKFLAGS += -I/usr/lib/x86_64-linux-gnu/openmpi/include -pthread -I/usr/lib/x86_64-linux-gnu/openmpi/lib
+   CXXLINKFLAGS += -L/usr/lib -L/usr/lib/x86_64-linux-gnu/openmpi/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi 
+
+  FORTFLAGS= -DFORTRAN_UNDERSCORE -DFORTRAN_LOWERCASE
+
+  ifdef DEBUG
+    CMFLAGS=-g -C
+    LDFLAGS=-g -C
+  else
+    CMFLAGS=-O2
+    LDFLAGS=-O2 -lgfortran
+  endif
+
+  ifdef PROF
+    CMFLAGS+=-pg
+    LDFLAGS+=-pg -lgfortran
+  endif
+
+  LIBSYS=
+
+  ifdef ROCPROF
+    FPPFLAGS+= -DROCPROF
+    LIBSYS+= -L$(ROCPROF)/lib -lRocprof
+  endif
+
+  ifdef HYPRE
+    CXXLINKFLAGS+=  -I/home/mparmar/hypre/include -L/home/mparmar/hypre/lib -lHYPRE
+    MKLLIBS = -lmkl_intel_lp64 -lmkl_sequential -lmkl_lapack -lmkl_core
+    CXXLINKFLAGS+=  -L/opt/intel/mkl/10.0.2.018/lib/em64t $(MKLLIBS)
+    CXXLINKFLAGS+=  -Wl,-rpath -Wl,/opt/intel/mkl/10.0.2.018/lib/em64t
+  endif
+
+  FPPFLAGS+=
+
+  TECHOME= ../../libtecplot/tecio
+  LIBTEC=$(TECHOME)/lib/tecio64.a
+
+  ifdef RFLUPOST
+    INCTEC=-I$(TECHOME)/include
+  endif
+
+  LIBMET= -lmetis #../../libmetis/libmetis.a
+endif
+
+
+### Hipergator at UF ######################## 
 ifeq ($(findstring ufhpc,$(MACHINE)),ufhpc)
   
   ifdef TAUDEBUG
@@ -336,7 +400,7 @@ ifeq ($(FC),mpixlf90_r)
 	$(MODDIR:%=-I%) -qsuffix=f=f90:cpp=F90 -qthreaded -c $< -o $@
 endif
 %.f90: %.F90
-	$(CPP) -C -P -traditional $(FPPFLAGS) $< $@
+	$(CPP) -P -traditional $(FPPFLAGS) $< $@
 %.o: %.f
 ifeq ($(FC),mpixlf90_r)
 	$(FC) $(CMFLAGS:-D%=-WF,-D%) -qsuffix=f=f -qfixed -c $< -o $@
