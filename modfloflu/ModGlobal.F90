@@ -420,6 +420,7 @@ MODULE ModGlobal
     LOGICAL :: Test_BBR,Test_Subbu,Test_Fred,Test_Rahul,Test_Chris,Test_Yash
     LOGICAL :: Test_Brad,Test_Sappy
     ! BBR - end
+    LOGICAL :: ifReadFromFile
                     
 ! ==============================================================================
 !   Multiphysics modules
