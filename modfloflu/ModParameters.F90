@@ -862,6 +862,8 @@ MODULE ModParameters
                         IF_TIME  = 903    ! Timing each iteration main loop
 
   ! end BBR
+
+  INTEGER, PARAMETER :: IF_READRB = 904  ! Read reactive burn file
                         
 ! ******************************************************************************
 ! Moving reference frame 
