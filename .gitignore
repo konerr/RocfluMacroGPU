@@ -1,0 +1,17 @@
+# Build files
+*.mod
+*.d
+*.o
+*.a
+
+# Binaries
+rfluclone
+rfluconv
+rfluextr
+rfluinit
+rflumap
+rflump
+rflupart
+rflupick
+rflupost
+
