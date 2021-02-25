@@ -372,58 +372,63 @@ SUBROUTINE RFLU_InitFlowHardCode(pRegion)
 ! ------------------------------------------------------------------------------
           CASE ( "cyldet" )
 
-          n = 0 
+          IF (global%ifReadFromFile) THEN
+            iFileName1 = pMixtInput%rBurnFile
+            n = 0 
 ! Begin - Count no.of lines in the RBA data file
-
-          OPEN(1990,FILE='petn01_1drad_datafile.dat',FORM='formatted', &
-               IOSTAT=errorFlag)
-          global%error = errorFlag
-          IF ( global%error /= ERR_NONE ) THEN
-            CALL ErrorStop(global,ERR_FILE_OPEN,__LINE__,'petn01_1drad_datafile.dat')
-          END IF ! global%error
-              
+  
+            OPEN(IF_READRB, FILE=iFileName1, FORM='FORMATTED', &
+                 IOSTAT=errorFlag)
+            global%error = errorFlag
+            IF ( global%error /= ERR_NONE ) THEN
+              CALL ErrorStop(global,ERR_FILE_OPEN,__LINE__,iFileName1)
+            END IF ! global%error
+                
 ! Infinite DO
-
-          DO 
-            n = n+1
-            READ(1990,'(A)') endString 
-            IF ( endString == TRIM('# END') ) THEN
-              CLOSE(1990)
-              WRITE(*,*) 'EOF reached, # of lines',n-1
-              EXIT
-            END IF ! name
-          END DO ! Infinite DO
-
+  
+            DO 
+              n = n+1
+              READ(IF_READRB,'(A)') endString 
+              IF ( endString == TRIM('# END') ) THEN
+                CLOSE(IF_READRB)
+                EXIT
+              END IF ! name
+! Guard against infinite loop 
+              IF ( n >= LIMIT_INFINITE_LOOP ) THEN 
+                CALL ErrorStop(global,ERR_INFINITE_LOOP,__LINE__)
+              END IF ! n
+            END DO ! Infinite DO
+  
 ! End - Counting lines in the file
-         
+           
 ! Allocate arrays to store column data from file
-
-          ALLOCATE (radData(n-1),rData(n-1),uData(n-1),eData(n-1), &
-                    STAT=errorFlag)
-          global%error = errorFlag
-          IF ( global%error /= ERR_NONE ) THEN
-            CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'radData')
-          END IF ! global%error
-
+  
+            ALLOCATE (radData(n-1),rData(n-1),uData(n-1),eData(n-1), &
+                      STAT=errorFlag)
+            global%error = errorFlag
+            IF ( global%error /= ERR_NONE ) THEN
+              CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'radData')
+            END IF ! global%error
+  
 ! Begin - Read data file and store data in arrays
-
-          OPEN(1990,FILE='petn01_1drad_datafile.dat',FORM='FORMATTED', &
-               IOSTAT=errorFlag)
-          global%error = errorFlag
-          IF ( global%error /= ERR_NONE ) THEN
-            CALL ErrorStop(global,ERR_FILE_OPEN,__LINE__,'petn01_1drad_datafile.dat')
-          END IF ! global%error
-          READ(1990,*) (radData(icg),rData(icg),uData(icg), &
-                                    eData(icg), icg=1,n-1)
-          CLOSE(1990)
-
+  
+            OPEN(IF_READRB,FILE=iFileName1,FORM='FORMATTED', &
+                 IOSTAT=errorFlag)
+            global%error = errorFlag
+            IF ( global%error /= ERR_NONE ) THEN
+               CALL ErrorStop(global,ERR_FILE_OPEN,__LINE__,iFileName1)
+            END IF ! global%error
+            READ(IF_READRB,*) (radData(icg),rData(icg),uData(icg), &
+                                      eData(icg), icg=1,n-1)
+            CLOSE(IF_READRB)
+  
 ! End - Reading data from file
-
-          radData = radData*1.0E-6_RFREAL
-
-! Write data computed by Rocflu to a file 
-
-!         OPEN(1988,FILE='PBA_Init.dat',FORM='FORMATTED',status='unknown',position='append')
+  
+! Convert radius to m from micrometer 
+! This is specific to RocSDT output
+            radData = radData*1.0E-6_RFREAL
+  
+          END IF ! global%ifReadFromFile
 
           DO icg = 1,pGrid%nCellsTot
             x = pGrid%cofg(XCOORD,icg)
@@ -433,17 +438,16 @@ SUBROUTINE RFLU_InitFlowHardCode(pRegion)
             IF (ABS(pMixtInput%prepIntVal1) == 0) THEN  !n=0 ; 2D(r-z)
              radius  = y
             ELSE                                        !2D(r-theta) or 3D(r-theta-z)
-             radius  = (x**2.0_RFREAL+y**2.0_RFREAL)**0.5_RFREAL
+             radius  = SQRT(x**2+y**2)
              theta = DATAN2(y,x)
             END IF
 
-            ro  = pMixtInput%prepRealVal1 ! Diaphragm loc
+            ro = pMixtInput%prepRealVal1 ! Diaphragm loc
             mw = pGv(GV_MIXT_MOL,indMol*icg)
             cp = pGv(GV_MIXT_CP ,indCp *icg)
             gc = MixtPerf_R_M(mw)
             g  = MixtPerf_G_CpR(cp,gc)
 
-IF (1==1) THEN
             IF (radius .GT. ro) THEN ! Air - Perfect gas
               p = pMixtInput%prepRealVal2
               d = pMixtInput%prepRealVal3
@@ -456,106 +460,86 @@ IF (1==1) THEN
               g  = MixtPerf_G_CpR(cp,gc)
               pCv(CV_MIXT_ENER,icg) = d*MixtPerf_Eo_DGPUVW(d,g,p,u,v,w)
               e  = MixtPerf_Eo_DGPUVW(d,g,p,u,v,w)
-!            ELSE IF (radius .LT. 9.9124999999999994E-04_RFREAL) THEN
-!              d = 1.6662862326748070E+03_RFREAL 
-!              u = 2.4584439285924671E+02_RFREAL*COS(theta)
-!              v = 2.4584439285924671E+02_RFREAL*SIN(theta)
-!              w = 0.0_RFREAL
-!              e = 6.5037983912121383E+06_RFREAL
-!              pCv(CV_MIXT_ENER,icg) = d*Mixt_Eo_eUVW(e,u,v,w) 
             ELSE
-loop:         DO b=1,n-1
-               i = b
+              d = pMixtInput%prepRealVal4*pMixtInput%prepRealVal3
+              u = 0.0_RFREAL
+              v = 0.0_RFREAL
+              w = 0.0_RFREAL
+              !ExplEner = 7.0e9_RFREAL
+              pCv(CV_MIXT_ENER,icg) = pMixtInput%prepRealVal13
 
+! Interpolate from the reactive burn data
+              IF (global%ifReadFromFile) THEN
+loop:           DO b=1,n-1
+                 i = b
+  
 ! Check if radius falls beyond the minimum bound of the input data 
 
-               IF (radData(1) .GT. radius) THEN
-                WRITE(*,*) 'Input value lies outside the range...rHigh'!,radius(1),i
-                rHigh = radData(1)
-                rLow  = radData(2)
-                iHigh = 2
-                iLow  = 1
-                EXIT loop
-               END IF
-
+                 IF (radData(1) .GT. radius) THEN
+                  WRITE(*,*) 'Input value lies outside the range...rHigh'!,radius(1),i
+                  rHigh = radData(1)
+                  rLow  = radData(2)
+                  iHigh = 2
+                  iLow  = 1
+                  EXIT loop
+                 END IF
+  
 ! End check
-
-               IF ( radData(i) .LT. radius ) THEN
-                rLow = radData(i)
-                iLow = i
-               ELSE IF ( ABS(radius-radData(i)) .LE. 1.0E-15_RFREAL ) THEN
-                rLow  = radius
-                rHigh = radData(i+1)
-                iLow  = i+1
-                iHigh = i
-                EXIT loop
-               END IF
-
-               i=i+1
-
+  
+                 IF ( radData(i) .LT. radius ) THEN
+                  rLow = radData(i)
+                  iLow = i
+                 ELSE IF ( ABS(radius-radData(i)) .LE. 1.0E-15_RFREAL ) THEN
+                  rLow  = radius
+                  rHigh = radData(i+1)
+                  iLow  = i+1
+                  iHigh = i
+                  EXIT loop
+                 END IF
+  
+                 i=i+1
+  
 ! Check if radius falls beyond the maximum bound of the input data 
-
-               IF (i .GT. n-1) THEN
-                rHigh = radData(i-1)
-                rLow  = radData(i-2)
-                iHigh = i-1
-                iLow  = i-2
-                EXIT loop
-               END IF ! (i .GT. n-1)
-
+  
+                 IF (i .GT. n-1) THEN
+                  rHigh = radData(i-1)
+                  rLow  = radData(i-2)
+                  iHigh = i-1
+                  iLow  = i-2
+                  EXIT loop
+                 END IF ! (i .GT. n-1)
+  
 ! End check
-               IF (radData(i) .GT. radius)THEN
-                rHigh = radData(i)
-                iHigh = i
-                EXIT
-               ELSE IF ( ABS(radius-radData(i)) .LE. 1.0E-15_RFREAL ) THEN
-                rLow  = radius
-                rHigh = radData(i+1)
-                iHigh = i
-                EXIT loop
-               END IF
-
-              END DO loop ! loop 
- 
-              wLow  = ABS(radius-rLow)
-              wHigh = ABS(rHigh-radius) 
-              wInv  = 1.0/(wLow+wHigh)
-                  d = ( wLow *rData(iLow ) + &
-                        wHigh*rData(iHigh) )*wInv
-                 ur = ( wLow *uData(iLow ) + &
-                        wHigh*uData(iHigh) )*wInv
-                  u = ur*COS(theta) 
-                  v = ur*SIN(theta)
-                  w = 0.0_RFREAL
-                  e = ( wLow *eData(iLow ) + &
-                        wHigh*eData(iHigh) )*wInv
-! Smooth initial data
-              IF (1==2) THEN 
-              IF (radius .GT. 0.00344_RFREAL) THEN 
-                d = 0.5_RFREAL*d* &
-                        (1.0_RFREAL-DTANH(1.0E+3_RFREAL*(radius-0.00355718628662_RFREAL)))
-                u = 0.5_RFREAL*u* &
-                        (1.0_RFREAL-DTANH(1.0E+3_RFREAL*(radius-0.00355718628662_RFREAL)))
-                v = 0.5_RFREAL*v* &
-                        (1.0_RFREAL-DTANH(1.0E+3_RFREAL*(radius-0.00355718628662_RFREAL)))
-                e = 0.5_RFREAL*e* &
-                        (1.0_RFREAL-DTANH(1.0E+3_RFREAL*(radius-0.00355718628662_RFREAL)))
-              END IF        
-              END IF !(1==2)   
-	      pCv(CV_MIXT_ENER,icg) = d*Mixt_Eo_eUVW(e,u,v,w)
+                 IF (radData(i) .GT. radius)THEN
+                  rHigh = radData(i)
+                  iHigh = i
+                  EXIT
+                 ELSE IF ( ABS(radius-radData(i)) .LE. 1.0E-15_RFREAL ) THEN
+                  rLow  = radius
+                  rHigh = radData(i+1)
+                  iHigh = i
+                  EXIT loop
+                 END IF
+  
+                END DO loop ! loop 
+   
+                wLow  = ABS(radius-rLow)
+                wHigh = ABS(rHigh-radius) 
+                wInv  = 1.0/(wLow+wHigh)
+                    d = ( wLow *rData(iLow ) + &
+                          wHigh*rData(iHigh) )*wInv
+                   ur = ( wLow *uData(iLow ) + &
+                          wHigh*uData(iHigh) )*wInv
+                    u = ur*COS(theta) 
+                    v = ur*SIN(theta)
+                    w = 0.0_RFREAL
+                    e = ( wLow *eData(iLow ) + &
+                          wHigh*eData(iHigh) )*wInv
+                pCv(CV_MIXT_ENER,icg) = d*Mixt_Eo_eUVW(e,u,v,w)
+              END IF ! global%ifReadFromFile  
 
             END IF ! radius
 END IF ! (1==2)
-
-IF (1==2) THEN
-!	    d  = 0.5_RFREAL*MAXVAL(rData) - 0.5_RFREAL*(MAXVAL(rData)-pMixtInput%prepRealVal3)*tanh(2.0E+4_RFREAL*(radius-ro)) 
-            d  = pMixtInput%prepRealVal3 + (MAXVAL(rData)-pMixtInput%prepRealVal3)*0.5_RFREAL*(1.0_RFREAL-tanh(2.0E+4_RFREAL*(radius-ro))) 
-            u  = MAXVAL(uData)*0.5_RFREAL*(1.0_RFREAL-tanh(2.0E+4_RFREAL*(radius-ro)))*COS(theta) 
-            v  = MAXVAL(uData)*0.5_RFREAL*(1.0_RFREAL-tanh(2.0E+4_RFREAL*(radius-ro)))*SIN(theta) 
-            w  = 0.0_RFREAL  
-            eAir  = MixtPerf_Eo_DGPVm(pMixtInput%prepRealVal3,g,pMixtInput%prepRealVal2,0.0_RFREAL)
-            e  = eAir + (MAXVAL(eData)-eAir)*0.5_RFREAL*(1.0_RFREAL-tanh(2.0E+4_RFREAL*(radius-ro))) 
-END IF ! 1==2
 
             pCv(CV_MIXT_DENS,icg) = d
             pCv(CV_MIXT_XMOM,icg) = d*u
@@ -563,14 +547,10 @@ END IF ! 1==2
             pCv(CV_MIXT_ZMOM,icg) = d*w
 !            pCv(CV_MIXT_ENER,icg) = d*Mixt_Eo_eUVW(e,u,v,w) 
 
-!          OPEN(1988,FILE='PBA_Init.dat',FORM='FORMATTED',status='unknown',position='append')
-!         write(1988,'(4(E23.16,1X))') radius,d,ur,e
 
           END DO ! icg
-!         CLOSE(1988) ! PBA_Init.dat
-!       STOP
 
-          ! Adding specific mode number/random mode numbers to base flow
+! Adding specific mode number/random mode numbers to base flow
 
           flag        = pMixtInput%prepIntVal3
           gaussAmp    = pMixtInput%prepRealVal6
@@ -589,9 +569,9 @@ END IF ! 1==2
              x = pGrid%cofg(XCOORD,icg)
              y = pGrid%cofg(YCOORD,icg)
              z = pGrid%cofg(ZCOORD,icg)
-             radius  = (x**2.0_RFREAL+y**2.0_RFREAL)**0.5_RFREAL
-             perturb = gaussAmp*EXP(-((radius-gaussCenter)**2.0_RFREAL) &
-                      /(2.0_RFREAL*gaussWidth**2.0_RFREAL))*randNum(icg)
+             radius  = SQRT(x**2+y**2)
+             perturb = gaussAmp*EXP(-((radius-gaussCenter)**2) &
+                      /(2.0_RFREAL*gaussWidth**2))*randNum(icg)
 
              pCv(CV_MIXT_DENS,icg) = pCv(CV_MIXT_DENS,icg)*(1.0_RFREAL+perturb)
              pCv(CV_MIXT_XMOM,icg) = pCv(CV_MIXT_XMOM,icg)*(1.0_RFREAL+perturb)
@@ -612,12 +592,12 @@ END IF ! 1==2
               zz      = x
               the     = DATAN2(z,y)
              ELSE                  ! 2D- (r-theta) OR 3D-(r-theta-z)
-              radius  = (x**2.0_RFREAL+y**2.0_RFREAL)**0.5_RFREAL
+              radius  = SQRT(x**2+y**2)
               zz      = z
               the     = DATAN2(y,x)
              END IF
-             !perturb = gaussAmp*EXP(-((radius-gaussCenter)**2.0_RFREAL) &
-             !        /(2.0_RFREAL*gaussWidth**2.0_RFREAL))*DCOS(m*the)*DCOS(n*zz/gaussCenter) ! gaussCenter = r0
+             !perturb = gaussAmp*EXP(-((radius-gaussCenter)**2) &
+             !        /(2.0_RFREAL*gaussWidth**2))*DCOS(m*the)*DCOS(n*zz/gaussCenter) ! gaussCenter = r0
              IF (radius .LE. pMixtInput%prepRealVal1) THEN
                perturb = gaussAmp*DCOS(m*the)
              ELSE
@@ -632,11 +612,13 @@ END IF ! 1==2
           END IF
 
 ! Rahul - Deallocate arrays storing the PBA file input
-          DEALLOCATE (radData,rData,uData,eData,STAT=errorFlag)
-          global%error = errorFlag
-          IF ( global%error /= ERR_NONE ) THEN
-            CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'radData')
-          END IF ! global%error
+          IF (global%ifReadFromFile) THEN
+            DEALLOCATE (radData,rData,uData,eData,STAT=errorFlag)
+            global%error = errorFlag
+            IF ( global%error /= ERR_NONE ) THEN
+              CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'rBurnData')
+            END IF ! global%error
+          END IF ! global%ifReadFromFile
 
 ! Subbu - End init cyldet case
 
@@ -717,14 +699,10 @@ END IF ! 1==2
 ! ------------------------------------------------------------------------------
 
         CASE ( "shktb" )
-
-            DO icg = 1,pGrid%nCellsTot           !Loop over all cells in domain
-                x = pGrid%cofg(XCOORD,icg)       !Extract x coordinate of 
-                                                 !cellcentroid
-                y = pGrid%cofg(YCOORD,icg)       !Extract y coordinate of
-                                                 !cellcentroid
-                z = pGrid%cofg(ZCOORD,icg)       !Extract z coordinate of
-                                                 !cellcentroid
+          DO icg = 1,pGrid%nCellsTot           !Loop over all cells in domain
+            x = pGrid%cofg(XCOORD,icg)       !Extract x coordinate of cellcentroid
+            y = pGrid%cofg(YCOORD,icg)       !Extract y coordinate of cellcentroid
+            z = pGrid%cofg(ZCOORD,icg)       !Extract z coordinate of cellcentroid
 
 !**************************************************************************************
 !IVAL = 0 EGG CRATE INTERFACE 
@@ -734,111 +712,85 @@ END IF ! 1==2
 !     = 4 FRONT FLAT - INVERSED CHEVRON ENDS
 !***************************************************************************************           
 
-
-
-
-                 IF( pMixtInput%prepIntVal1 == 0 ) THEN ! Egg Crate
-
-                    dx = pMixtInput%prepRealVal10 &
-                         *abs(sin(pMixtInput%prepRealVal11*y) &
-                         *sin(pMixtInput%prepRealVal11*z))
-                    coordSinInt    = pMixtInput%prepRealVal5 + dx
-                    coordSinIntEnd = pMixtInput%prepRealVal12 + dx
-
-                 ELSEIF ( pMixtInput%prepIntVal1 == 1 ) THEN  ! MultiMode Cosine
-                                                              ! surface
-
-                   dy = pMixtInput%prepRealVal10 &
-                       *(cos(pMixtInput%prepRealVal11*y))
-                   dz = pMixtInput%prepRealVal10 &
-                       *(cos(pMixtInput%prepRealVal11*z))
-                   dx = dy+dz
-                   coordSinInt    = pMixtInput%prepRealVal5 + dx
-                   coordSinIntEnd = pMixtInput%prepRealVal12 + dx
-
-                 ELSEIF ( pMixtInput%prepIntVal1 == 2 ) THEN  ! SingleMode
-                                                              ! Cosine Surface 
-                                                              ! along Y
-                  dx = pMixtInput%prepRealVal10 &
-                       *(cos(pMixtInput%prepRealVal11*y))
-                  coordSinInt    = pMixtInput%prepRealVal5 + dx
-                  coordSinIntEnd = pMixtInput%prepRealVal12 + dx
-
-                 ELSEIF ( pMixtInput%prepIntVal1 == 3) THEN ! For Flat Surface 
-                   dx = 0.000000000000000
-                   coordSinInt    = pMixtInput%prepRealVal5 + dx
-                   coordSinIntEnd = pMixtInput%prepRealVal12 + dx
-
-                 END IF
+            IF( pMixtInput%prepIntVal1 == 0 ) THEN ! Egg Crate
+               dx = pMixtInput%prepRealVal10 &
+                    *abs(sin(pMixtInput%prepRealVal11*y) &
+                    *sin(pMixtInput%prepRealVal11*z))
+               coordSinInt    = pMixtInput%prepRealVal5 + dx
+               coordSinIntEnd = pMixtInput%prepRealVal12 + dx
+            ELSE IF ( pMixtInput%prepIntVal1 == 1 ) THEN  ! MultiMode Cosine surface
+              dy = pMixtInput%prepRealVal10 &
+                  *(cos(pMixtInput%prepRealVal11*y))
+              dz = pMixtInput%prepRealVal10 &
+                  *(cos(pMixtInput%prepRealVal11*z))
+              dx = dy+dz
+              coordSinInt    = pMixtInput%prepRealVal5 + dx
+              coordSinIntEnd = pMixtInput%prepRealVal12 + dx
+            ELSE IF ( pMixtInput%prepIntVal1 == 2 ) THEN  ! SingleMode Cosine Surface along Y
+             dx = pMixtInput%prepRealVal10 &
+                  *(cos(pMixtInput%prepRealVal11*y))
+             coordSinInt    = pMixtInput%prepRealVal5 + dx
+             coordSinIntEnd = pMixtInput%prepRealVal12 + dx
+            ELSE IF ( pMixtInput%prepIntVal1 == 3) THEN ! For Flat Surface 
+              dx = 0.000000000000000
+              coordSinInt    = pMixtInput%prepRealVal5 + dx
+              coordSinIntEnd = pMixtInput%prepRealVal12 + dx
+            END IF
 
 !*******************************************************************************************
 !INTERFACE CONDITION ENDS
 
 !*******************************************************************************************
 
-              IF ( x < pMixtInput%prepRealVal1 ) THEN !Shocked air portion
+            IF ( x .LT. pMixtInput%prepRealVal1 ) THEN !Shocked air portion
+              d = pMixtInput%prepRealVal2
+              u = pMixtInput%prepRealVal3
+              v = 0.0_RFREAL
+              w = 0.0_RFREAL
+              p = pMixtInput%prepRealVal4
+            ELSE IF( x .LT. pMixtInput%prepRealVal5 ) THEN !Unshocked air portion
+              d = pMixtInput%prepRealVal6
+              u = 0.0_RFREAL
+              v = 0.0_RFREAL
+              w = 0.0_RFREAL
+              p = pMixtInput%prepRealVal7
+            ELSE IF( x .LT. coordSinInt ) THEN      !Unshocked air portion
+              d = pMixtInput%prepRealVal6
+              u = 0.0_RFREAL
+              v = 0.0_RFREAL
+              w = 0.0_RFREAL
+              p = pMixtInput%prepRealVal7
+            ELSE IF(x .LT. pMixtInput%prepRealVal12)THEN    !Unshocked SF6 portion
+              d = pMixtInput%prepRealVal8
+              u = 0.0_RFREAL
+              v = 0.0_RFREAL
+              w = 0.0_RFREAL
+              p = pMixtInput%prepRealVal9
+            ELSE IF (x .LT. coordSinIntEnd )THEN    !Unshocked SF6 portion
+              d = pMixtInput%prepRealVal8
+              u = 0.0_RFREAL
+              v = 0.0_RFREAL
+              w = 0.0_RFREAL
+              p = pMixtInput%prepRealVal9
+            ELSE                             !Unshocked Air
+              d = pMixtInput%prepRealVal6
+              u = 0.0_RFREAL
+              v = 0.0_RFREAL
+              w = 0.0_RFREAL
+              p = pMixtInput%prepRealVal7
+            END IF ! ( x < pMixtInput%prepRealVal1 
 
-                d = pMixtInput%prepRealVal2
-                u = pMixtInput%prepRealVal3
-                v = 0.0_RFREAL
-                w = 0.0_RFREAL
-                p = pMixtInput%prepRealVal4
+            mw = pGv(GV_MIXT_MOL,indMol*icg)
+            cp = pGv(GV_MIXT_CP ,indCp *icg)
 
-              ELSEIF( x < pMixtInput%prepRealVal5 ) THEN !Unshocked air portion
+            gc = MixtPerf_R_M(mw)
+            g  = MixtPerf_G_CpR(cp,gc)
 
-                d = pMixtInput%prepRealVal6
-                u = 0.0_RFREAL
-                v = 0.0_RFREAL
-                w = 0.0_RFREAL
-                p = pMixtInput%prepRealVal7
-
-              ELSEIF( x < coordSinInt ) THEN      !Unshocked air portion
-
-                d = pMixtInput%prepRealVal6
-                u = 0.0_RFREAL
-                v = 0.0_RFREAL
-                w = 0.0_RFREAL
-                p = pMixtInput%prepRealVal7
-
-
-              ELSEIF(x< pMixtInput%prepRealVal12)THEN    !Unshocked SF6 portion
-
-                d = pMixtInput%prepRealVal8
-                u = 0.0_RFREAL
-                v = 0.0_RFREAL
-                w = 0.0_RFREAL
-                p = pMixtInput%prepRealVal9
-
-              ELSEIF(x<coordSinIntEnd )THEN    !Unshocked SF6 portion
-
-                d = pMixtInput%prepRealVal8
-                u = 0.0_RFREAL
-                v = 0.0_RFREAL
-                w = 0.0_RFREAL
-                p = pMixtInput%prepRealVal9
-
-             ELSE                             !Unshocked Air
-
-             d = pMixtInput%prepRealVal6
-             u = 0.0_RFREAL
-             v = 0.0_RFREAL
-             w = 0.0_RFREAL
-             p = pMixtInput%prepRealVal7
-
-
-              END IF ! x
-
-                mw = pGv(GV_MIXT_MOL,indMol*icg)
-                cp = pGv(GV_MIXT_CP ,indCp *icg)
-
-                gc = MixtPerf_R_M(mw)
-                g  = MixtPerf_G_CpR(cp,gc)
-
-                pCv(CV_MIXT_DENS,icg) = d
-                pCv(CV_MIXT_XMOM,icg) = d*u
-                pCv(CV_MIXT_YMOM,icg) = d*v
-                pCv(CV_MIXT_ZMOM,icg) = d*w
-                pCv(CV_MIXT_ENER,icg) = d*MixtPerf_Eo_DGPUVW(d,g,p,u,v,w)
+            pCv(CV_MIXT_DENS,icg) = d
+            pCv(CV_MIXT_XMOM,icg) = d*u
+            pCv(CV_MIXT_YMOM,icg) = d*v
+            pCv(CV_MIXT_ZMOM,icg) = d*w
+            pCv(CV_MIXT_ENER,icg) = d*MixtPerf_Eo_DGPUVW(d,g,p,u,v,w)
 
           END DO ! icg
 
@@ -991,7 +943,7 @@ END IF ! 1==2
             y = pGrid%cofg(YCOORD,icg)
             z = pGrid%cofg(ZCOORD,icg)
 
-            !radius  = (x**2.0_RFREAL+y**2.0_RFREAL+z**2.0_RFREAL)**0.5_RFREAL
+            !radius  = SQRT(x**2+y**2+z**2)
             radius = x
 
             IF ( radius > pMixtInput%prepRealVal1 ) THEN
