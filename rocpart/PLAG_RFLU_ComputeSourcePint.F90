@@ -172,7 +172,7 @@ SUBROUTINE PLAG_RFLU_ComputeSourcePint(region)
     up = Dvp(DV_PLAG_UVEL,ipcl)
     vp = Dvp(DV_PLAG_VVEL,ipcl)
     wp = Dvp(DV_PLAG_WVEL,ipcl)
-    Qp = Qp + (up*up + vp*vp + wp*wp)**0.5_RFREAL
+    Qp = Qp + SQRT(up*up + vp*vp + wp*wp)
 
     upE(cID)  = upE(cID) + Qp
     npcl(cID) = npcl(cID) + 1 
@@ -200,12 +200,12 @@ SUBROUTINE PLAG_RFLU_ComputeSourcePint(region)
      vg = cv(CV_MIXT_YMOM,ic)/r 
      wg = cv(CV_MIXT_ZMOM,ic)/r  
 
-     Qg = (ug*ug + vg*vg + wg*wg)**0.5_RFREAL
+     Qg = SQRT(ug*ug + vg*vg + wg*wg)
         
 !     p  = MixtPerf_P_DEoGVm2(r/vFracG,cv(CV_MIXT_ENER,ic)/r,g,Qg*Qg)
      p = region%mixt%dv(DV_MIXT_PRES,ic)
      term1 = cpup*(1.0_RFREAL-vFracG)*r/vFracG
-     term2 = (Qg-upE(ic))**2.0_RFREAL
+     term2 = (Qg-upE(ic))**2
 
      delp  = term1*term2
      delp  = MIN(delp,eps*p)

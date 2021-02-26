@@ -247,9 +247,9 @@ SUBROUTINE PLAG_RFLU_InitSolutionFile(pRegion)
     pCv(CV_PLAG_ZMOM,iPcl) = massSum*pCv(CV_PLAG_ZMOM,iPcl) 
     pCv(CV_PLAG_ENER,iPcl) = heatCapSum*pCv(CV_PLAG_ENER,iPcl) + &
                              massSum*0.5_RFREAL*( &
-                             (massSumR*pCv(CV_PLAG_XMOM,iPcl))**2.0_RFREAL + &
-                             (massSumR*pCv(CV_PLAG_YMOM,iPcl))**2.0_RFREAL + &
-                             (massSumR*pCv(CV_PLAG_ZMOM,iPcl))**2.0_RFREAL)
+                             (massSumR*pCv(CV_PLAG_XMOM,iPcl))**2 + &
+                             (massSumR*pCv(CV_PLAG_YMOM,iPcl))**2 + &
+                             (massSumR*pCv(CV_PLAG_ZMOM,iPcl))**2)
     
     pAiv(AIV_PLAG_ICELLS,iPcl) = CRAZY_VALUE_INT ! Value used in initialization
     pAiv(AIV_PLAG_REGINI,iPcl) = CRAZY_VALUE_INT ! Value used in initialization

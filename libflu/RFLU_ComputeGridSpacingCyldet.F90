@@ -144,16 +144,16 @@ SUBROUTINE RFLU_ComputeGridSpacingCyldet(pRegion)
   IF (pRegion%iRegionGlobal .LE. nRegSum) THEN
 
     icg = 1
-    pGrid%radMin = DSQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                        pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+    pGrid%radMin = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                         pGrid%cofg(YCOORD,icg)**2)
     pGrid%theMin = DATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
     pGrid%zMin   = pGrid%cofg(ZCOORD,icg)
     pGrid%SgntheMin = INT(DSIGN(1.0_RFREAL,pGrid%theMin))
  
     ! Compute drad
     DO icg = 2,pGrid%nCells
-      rad = DSQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                 pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+      rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                  pGrid%cofg(YCOORD,icg)**2)
       the = DATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
       z   = pGrid%cofg(ZCOORD,icg)
       IF (DABS(the-pGrid%theMin) .LE. tol .AND. &
@@ -166,8 +166,8 @@ SUBROUTINE RFLU_ComputeGridSpacingCyldet(pRegion)
 
     ! Compute dthe
     DO icg = 2,pGrid%nCells
-      rad = DSQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                 pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+      rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                  pGrid%cofg(YCOORD,icg)**2)
       the = DATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
       z   = pGrid%cofg(ZCOORD,icg)
       IF (DABS(rad-pGrid%radMin) .LE. tol .AND. &
@@ -184,8 +184,8 @@ SUBROUTINE RFLU_ComputeGridSpacingCyldet(pRegion)
       pGrid%Kmax = pGrid%nCells/(pGrid%Imax*pGrid%Jmax)
     ELSE
       DO icg = 2,pGrid%nCells
-        rad = DSQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                   pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+        rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                    pGrid%cofg(YCOORD,icg)**2)
         the = DATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
         z   = pGrid%cofg(ZCOORD,icg)
         IF (DABS(the-pGrid%theMin) .LE. tol .AND. &

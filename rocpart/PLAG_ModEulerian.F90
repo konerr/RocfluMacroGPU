@@ -490,8 +490,8 @@ MODULE PLAG_ModEulerian
           volL = volL + cv(cvMass(iCont),iPcl)/dens(iCont)
         END DO ! iCont   
 
-        ev(EV_PLAG_DIA3,icg) = ev(EV_PLAG_DIA3,icg) +diamMicron**3.0_RFREAL
-        ev(EV_PLAG_DIA4,icg) = ev(EV_PLAG_DIA4,icg) +diamMicron**4.0_RFREAL
+        ev(EV_PLAG_DIA3,icg) = ev(EV_PLAG_DIA3,icg) +diamMicron**3
+        ev(EV_PLAG_DIA4,icg) = ev(EV_PLAG_DIA4,icg) +diamMicron**4
 
         ev(EV_PLAG_NDNS,icg) = ev(EV_PLAG_NDNS,icg) +1.0_RFREAL
  

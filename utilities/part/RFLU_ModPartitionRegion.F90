@@ -3215,7 +3215,7 @@ MODULE RFLU_ModPartitionRegion
       !  icg = 0
       !  DO layer = 1,Kmax
       !    icg = (layer-1)*(Imax) + 1
-      !    radius = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+      !    radius = DSQRT(pGrid%cofg(XCOORD,icg)**2 + pGrid%cofg(YCOORD,icg)**2)
       !    IF (ABS(radius - pRegion%mixtInput%prepRealVal7) .LE. TolPclRadMax ) THEN 
       !      UppLayer = layer
       !      WRITE(*,*) 'UppLim-Radius,iLayer=',radius,layer  ! Upper limit
@@ -3226,9 +3226,10 @@ MODULE RFLU_ModPartitionRegion
         icg = 0
         DO layer = 1,Kmax-1
           icg = (layer-1)*(Imax) + 1
-          radius = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          radius = DSQRT(pGrid%cofg(XCOORD,icg)**2 + pGrid%cofg(YCOORD,icg)**2)
           icg = layer*Imax + 1
-          radiusPlus1 = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          radiusPlus1 = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                              pGrid%cofg(YCOORD,icg)**2)
           IF ( (pRegion%mixtInput%prepRealVal7 .GT. radius) .AND. &
                (pRegion%mixtInput%prepRealVal7 .LT. radiusPlus1) ) THEN
                 radDiff = ABS(radius - pRegion%mixtInput%prepRealVal7)
@@ -3247,7 +3248,8 @@ MODULE RFLU_ModPartitionRegion
         icg = 0
         DO layer = 1,Kmax
           icg = (layer-1)*(Imax) + 1
-          radius = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          radius = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                         pGrid%cofg(YCOORD,icg)**2)
           WRITE(*,*) 'layer,rad=',layer,radius
         END DO
 

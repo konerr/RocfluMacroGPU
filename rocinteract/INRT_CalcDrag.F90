@@ -158,7 +158,7 @@ SUBROUTINE INRT_CalcDrag( region )
 
     vFrac     = pPlag%vFracL(1,iPcls)
     IF (vFrac .GT. 0.4_RFREAL) vFrac = 0.4_RFREAL
-    vFracCorr = (1.0_RFREAL + 2.0_RFREAL*vFrac)/(1.0_RFREAL-vFrac)**3.0_RFREAL
+    vFracCorr = (1.0_RFREAL + 2.0_RFREAL*vFrac)/(1.0_RFREAL-vFrac)**3
 
     diamL = pDv(DV_PLAG_DIAM,iPcls)
 

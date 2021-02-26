@@ -205,7 +205,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
       
             CASE ( VISC_SUTHR )
               DO icg = icgBeg,icgEnd
-                term = SQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) & 
+                term = DSQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) & 
                       *(1.0_RFREAL + suthCoef/refTemp)/ & 
                        (1.0_RFREAL + suthCoef/pDv(DV_MIXT_TEMP,icg))
 
@@ -229,7 +229,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
               s1 = 110.0_RFREAL
               s2 = 120.0_RFREAL
               s3 = 230.0_RFREAL
-              s4 = 1.0_RFREAL/refTemp*SQRT(s2/refTemp)*(refTemp+s1)/s3
+              s4 = 1.0_RFREAL/refTemp*DSQRT(s2/refTemp)*(refTemp+s1)/s3
 
               IF ( refTemp <= s2 ) THEN
                 DO icg = icgBeg,icgEnd
@@ -238,7 +238,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
                   IF ( absTemp < s2 ) THEN
                     term = absTemp/refTemp
                   ELSE
-                    term = SQRT(absTemp/s2)*(absTemp/refTemp)*(s3/(absTemp+s1))
+                    term = DSQRT(absTemp/s2)*(absTemp/refTemp)*(s3/(absTemp+s1))
                   END IF ! absTemp
 
                   pTv(TV_MIXT_MUEL,icg) = refVisc*term
@@ -252,7 +252,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
                   IF ( absTemp < s2 ) THEN
                     term = s4
                   ELSE
-                    term = SQRT(absTemp/refTemp)*(absTemp/refTemp) & 
+                    term = DSQRT(absTemp/refTemp)*(absTemp/refTemp) & 
                           *(refTemp+s1)/(absTemp+s1)
                   END IF ! absTemp
 
@@ -312,7 +312,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
                   pr       = pSpecType%pMaterial%pr
                   cp       = pSpecType%pMaterial%spht
 
-                  mui = refVisc*SQRT(Tmixt/suthTemp) &
+                  mui = refVisc*DSQRT(Tmixt/suthTemp) &
                         *(1.0_RFREAL + suthCoef/suthTemp)/ &
                          (1.0_RFREAL + suthCoef/Tmixt)
 
@@ -334,7 +334,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
                     pr2       = pSpecType%pMaterial%pr
                     cp2       = pSpecType%pMaterial%spht
 
-                    muj = refVisc2*SQRT(Tmixt/suthTemp2) &
+                    muj = refVisc2*DSQRT(Tmixt/suthTemp2) &
                           *(1.0_RFREAL + suthCoef2/suthTemp2)/ &
                            (1.0_RFREAL + suthCoef2/Tmixt)
 
@@ -344,7 +344,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
                              )**(-0.5_RFREAL)) &
                            *((1.0_RFREAL+((mui/muj)**0.50_RFREAL) &
                                         *((molw2/molw)**0.25_RFREAL) &
-                             )**2.0_RFREAL)
+                             )**2)
 
 ! TEMPORARY: Using the formula which reduces to unity for single species
 !                    phiijCond =
@@ -352,12 +352,12 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
 !                                              )**(-0.5_RFREAL)) &
 !                              *((1.0_RFREAL+((condi/condj)**0.50_RFREAL) &
 !                                           *((molw2/molw)**0.25_RFREAL) &
-!                               )**2.0_RFREAL)
+!                               )**2)
                     phiijCond = ((8.0_RFREAL*(1.0_RFREAL+molw/molw2) &
                                  )**(-0.5_RFREAL)) &
                               *((1.0_RFREAL+((condi/condj)**0.50_RFREAL) &
                                            *((molw2/molw)**0.25_RFREAL) &
-                               )**2.0_RFREAL)
+                               )**2)
 ! END TEMPORARY
 
                     term     = term     + xj*phiij
@@ -391,7 +391,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
 
 ! --------- Use Sutherland formula for gas -------------------------------------
 
-            term = SQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) & 
+            term = DSQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) & 
                    *(1.0_RFREAL + suthCoef/refTemp)/ & 
                     (1.0_RFREAL + suthCoef/pDv(DV_MIXT_TEMP,icg))
 
@@ -400,7 +400,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
    
 ! --------- Use Sutherland formula for vapor -----------------------------------
 
-            term = SQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) & 
+            term = DSQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) & 
                    *(1.0_RFREAL + suthCoef/refTemp)/ & 
                     (1.0_RFREAL + suthCoef/pDv(DV_MIXT_TEMP,icg))
 
@@ -495,7 +495,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
             DO i = 1,5
               DO j = 1,5
                 sigmaAB(i,j) = 0.5_RFREAL*(sigma(i) + sigma(j))
-                epskAB (i,j) = SQRT(epsk(i)*epsk(j))
+                epskAB (i,j) = DSQRT(epsk(i)*epsk(j))
                 omegaAB(i,j) = 1.06036_RFREAL/(Tmixt/epskAB(i,j))**0.15610_RFREAL   &
                              + 0.19300_RFREAL/exp(0.47635_RFREAL*Tmixt/epskAB(i,j)) &
                              + 1.03587_RFREAL/exp(1.52996_RFREAL*Tmixt/epskAB(i,j)) &
@@ -563,7 +563,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
             ! Viscosity [10*g/cm*s = 10*Poise = kg/m*s] of a pure-species, 
             ! low-pressure gas-kinetic theory (BSL 2nd.Ed. p.26):
             DO i = 1,5
-              mu(i) = 2.6693E-6_RFREAL*SQRT(mw(i)*Tmixt)/(sigma(i)**2.0_RFREAL*omega(i))
+              mu(i) = 2.6693E-6_RFREAL*DSQRT(mw(i)*Tmixt)/(sigma(i)**2*omega(i))
             END DO !i
             DO i = 1,5
               Rspec = MixtPerf_R_M(mw(i))
@@ -574,8 +574,8 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
             END DO !
             DO i = 1,5
               DO j = 1,5
-                Phi(i,j) = 1.0_RFREAL/SQRT(8.0_RFREAL*(1.0_RFREAL+mw(i)/mw(j))) &
-                         *(1.0_RFREAL + SQRT(mu(i)/mu(j))*(mw(j)/mw(i))**(0.25_RFREAL))**2.0_RFREAL ;
+                Phi(i,j) = 1.0_RFREAL/DSQRT(8.0_RFREAL*(1.0_RFREAL+mw(i)/mw(j))) &
+                         *(1.0_RFREAL + DSQRT(mu(i)/mu(j))*(mw(j)/mw(i))**(0.25_RFREAL))**2 ;
               END DO !j
             END DO ! i
  
@@ -596,7 +596,7 @@ SUBROUTINE RFLU_SetTransportVars(pRegion,icgBeg,icgEnd)
 
 
             IF (Visc .LE. 0.0_RFREAL) THEN
-            term = SQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) &
+            term = DSQRT(pDv(DV_MIXT_TEMP,icg)/refTemp) &
                       *(1.0_RFREAL + suthCoef/refTemp)/ &
                        (1.0_RFREAL + suthCoef/pDv(DV_MIXT_TEMP,icg))
             

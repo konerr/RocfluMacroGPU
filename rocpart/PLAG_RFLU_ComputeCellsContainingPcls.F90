@@ -188,10 +188,10 @@ SUBROUTINE PLAG_RFLU_ComputeCellsContainingPcls(pRegion)
 
   rMinicl = MINLOC(ABS(pGrid%cofg(YCOORD,:)))
   rMaxicl = MAXLOC(ABS(pGrid%cofg(YCOORD,:)))
-  rMinReg = SQRT(pGrid%cofg(XCOORD,rMinicl(1))**2.0_RFREAL + &
-                 pGrid%cofg(YCOORD,rMinicl(1))**2.0_RFREAL) 
-  rMaxReg = SQRT(pGrid%cofg(XCOORD,rMaxicl(1))**2.0_RFREAL + &
-                 pGrid%cofg(YCOORD,rMaxicl(1))**2.0_RFREAL)
+  rMinReg = DSQRT(pGrid%cofg(XCOORD,rMinicl(1))**2 + &
+                  pGrid%cofg(YCOORD,rMinicl(1))**2) 
+  rMaxReg = DSQRT(pGrid%cofg(XCOORD,rMaxicl(1))**2 + &
+                  pGrid%cofg(YCOORD,rMaxicl(1))**2)
 
 ! ------------------------ Allocating memory for all regions ------------------- 
 
@@ -212,8 +212,8 @@ SUBROUTINE PLAG_RFLU_ComputeCellsContainingPcls(pRegion)
          pGrid%initPclPresent = .FALSE.
   ELSE
      DO icl = 1,pGrid%nCells
-       rad = SQRT(pGrid%cofg(XCOORD,icl)**2.0_RFREAL + &
-                 pGrid%cofg(YCOORD,icl)**2.0_RFREAL)
+       rad = DSQRT(pGrid%cofg(XCOORD,icl)**2 + &
+                   pGrid%cofg(YCOORD,icl)**2)
        IF ( (radMin-rad .LE. tol) .AND. &
             (rad-radMax .LE. tol) ) THEN 
           pGrid%nCellsSeedPcls = pGrid%nCellsSeedPcls + 1

@@ -634,7 +634,7 @@ SUBROUTINE PLAG_RFLU_FindCellsHardCode(pRegion,iPclBeg,iPclEnd)
     yloc = pPlag%cv(CV_PLAG_YPOS,iPcl)
     zLoc = pPlag%cv(CV_PLAG_ZPOS,iPcl)
      
-    radLoc = SQRT(xLoc**2.0_RFREAL + yLoc**2.0_RFREAL)
+    radLoc = DSQRT(xLoc**2 + yLoc**2)
     theLoc = ATAN2(yLoc,xLoc)
 
     IF (pGrid%radMaxflag == 1 .AND. radLoc-pGrid%radMaxGlob .GT. nTol ) THEN ! Pcls outside domain
@@ -651,7 +651,7 @@ SUBROUTINE PLAG_RFLU_FindCellsHardCode(pRegion,iPclBeg,iPclEnd)
             nx = pPatch%fn(XCOORD,ifl)
             ny = pPatch%fn(YCOORD,ifl)
             nz = DABS(pPatch%fn(ZCOORD,ifl))
-            nr = DSQRT(nx**2.0_RFREAL + ny**2.0_RFREAL)
+            nr = DSQRT(nx**2 + ny**2)
             IF (DABS(nr - 1.0_RFREAL) .LE. nTol) THEN ! nTol can be reduced and condition for radLoc>radMax
             !IF (DABS(nz - 1.0_RFREAL) .LE. nTol) THEN ! nTol can be reduced
               ifgOut = pGrid%hex2f(2,ifl,icl)
@@ -668,7 +668,7 @@ SUBROUTINE PLAG_RFLU_FindCellsHardCode(pRegion,iPclBeg,iPclEnd)
         GOTO 200
     END IF
 
-    radLoc = SQRT(xLoc**2.0_RFREAL + yLoc**2.0_RFREAL)
+    radLoc = DSQRT(xLoc**2 + yLoc**2)
     theLoc = ATAN2(yLoc,xLoc)
     theLocActCell = theLoc
 

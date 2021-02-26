@@ -196,12 +196,12 @@ SUBROUTINE SourceTermsPint(region)
      vg = cv(CV_MIXT_YMOM,ic)/r 
      wg = cv(CV_MIXT_ZMOM,ic)/r  
 
-     Qg = (ug*ug + vg*vg + wg*wg)**0.5_RFREAL
+     Qg = SQRT(ug*ug + vg*vg + wg*wg)
         
 !     p  = MixtPerf_P_DEoGVm2(r/vFracG,cv(CV_MIXT_ENER,ic)/r,g,Qg*Qg)
      p = region%mixt%dv(DV_MIXT_PRES,ic)
      term1 = cpup*(1.0_RFREAL-vFracG)*r/vFracG
-     term2 = (Qg-upE(ic))**2.0_RFREAL
+     term2 = (Qg-upE(ic))**2
 
      delp  = term1*term2
      delp  = MIN(delp,eps*p)

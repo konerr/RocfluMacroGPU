@@ -766,8 +766,8 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
       pMixtInput => pRegion%mixtInput
       DO icg = 1,pGrid%nCells
         IF (pGrid%hex2CellGlob(icg) == 1) THEN
-          pGrid%radMin = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                               pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          pGrid%radMin = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                               pGrid%cofg(YCOORD,icg)**2)
           pGrid%theMin = ATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
           pGrid%zMin   = pGrid%cofg(ZCOORD,icg)
           pGrid%SgntheMin = INT(DSIGN(1.0_RFREAL,pGrid%theMin))
@@ -779,8 +779,8 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
       END DO
           
       DO icg = 2,pGrid%nCells
-        rad = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                   pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+        rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                    pGrid%cofg(YCOORD,icg)**2)
         the = ATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
         z   = pGrid%cofg(ZCOORD,icg)
         IF (ABS(the-pGrid%theMin) .LE. Tol .AND. &
@@ -797,8 +797,8 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
         pGrid%Kmax = pGrid%nCells/(pGrid%Imax*pGrid%Jmax)
       ELSE
         DO icg = 2,pGrid%nCells
-          rad = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                     pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                      pGrid%cofg(YCOORD,icg)**2)
           the = ATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
           z   = pGrid%cofg(ZCOORD,icg)
           IF (ABS(the-pGrid%theMin) .LE. Tol .AND. &
@@ -860,8 +860,8 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
       END IF
       
       icg  = pGrid%nCells + 1
-      pGrid%radMinVirtExt = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                                 pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+      pGrid%radMinVirtExt = DSQRT(pGrid%cofg(XCOORD,icg)**2 + &
+                                  pGrid%cofg(YCOORD,icg)**2)
       pGrid%theMinVirtExt = ATAN2(pGrid%cofg(YCOORD,icg),pGrid%cofg(XCOORD,icg))
       pGrid%zMinVirtExt   = pGrid%cofg(ZCOORD,icg)
 
@@ -899,7 +899,7 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
          nx = pPatch%fn(XCOORD,ifl)
          ny = pPatch%fn(YCOORD,ifl)
          nz = pPatch%fn(ZCOORD,ifl)
-         nr = DSQRT(nx**2.0_RFREAL + ny**2.0_RFREAL)
+         nr = DSQRT(nx**2 + ny**2)
          IF ( DABS(nr - 1.0_RFREAL) .LE. nTol ) THEN
            pGrid%radMaxflag = 1
            pGrid%radMaxGlob = pGrid%radMin+(pGrid%Kmax-1)*pGrid%drad
@@ -928,8 +928,8 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
    IF (1==2) THEN
     IF (pRegion%iRegionGlobal == 2) THEN
      DO icg = pRegion%grid%nCells+1,pGrid%nCellsTot
-       rad = SQRT(pRegion%grid%cofg(XCOORD,icg)**2.0_RFREAL + &
-                  pRegion%grid%cofg(YCOORD,icg)**2.0_RFREAL)
+       rad = DSQRT(pRegion%grid%cofg(XCOORD,icg)**2 + &
+                   pRegion%grid%cofg(YCOORD,icg)**2)
        the = ATAN2(pRegion%grid%cofg(YCOORD,icg),pRegion%grid%cofg(XCOORD,icg))
        z   = pRegion%grid%cofg(ZCOORD,icg)
        !iBorder = pGrid%vc2border(1,icg-pGrid%nCells)

@@ -282,9 +282,9 @@ SUBROUTINE PLAG_RFLU_InitSolutionHardcode(pRegion)
         icg = 0
         DO layer = 1,pGrid%Kmax-1
           icg = (layer-1)*(pGrid%Imax) + 1
-          rad = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + pGrid%cofg(YCOORD,icg)**2)
           icg = layer*pGrid%Imax + 1
-          radPlus1 = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          radPlus1 = DSQRT(pGrid%cofg(XCOORD,icg)**2 + pGrid%cofg(YCOORD,icg)**2)
           IF ( (yMin .GT. rad) .AND. &
                (yMin .LT. radPlus1) ) THEN
                 radDiff = ABS(rad - yMin)
@@ -305,9 +305,9 @@ SUBROUTINE PLAG_RFLU_InitSolutionHardcode(pRegion)
         icg = 0
         DO layer = 1,pGrid%Kmax-1
           icg = (layer-1)*(pGrid%Imax) + 1
-          rad = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + pGrid%cofg(YCOORD,icg)**2)
           icg = layer*pGrid%Imax + 1
-          radPlus1 = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+          radPlus1 = DSQRT(pGrid%cofg(XCOORD,icg)**2 + pGrid%cofg(YCOORD,icg)**2)
           IF ( (yMax .GT. rad) .AND. &
                (yMax .LT. radPlus1) ) THEN
                 radDiff = ABS(rad - yMax)
@@ -327,7 +327,7 @@ SUBROUTINE PLAG_RFLU_InitSolutionHardcode(pRegion)
   icg = 0
   DO layer = 1,pGrid%Kmax
     icg = (layer-1)*pGrid%Imax + 1
-    rad = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+    rad = DSQRT(pGrid%cofg(XCOORD,icg)**2 + pGrid%cofg(YCOORD,icg)**2)
     IF (ABS(rad - yMin) .LE. 1.0E-05) THEN
       BaseVol = pGrid%vol(icg)
       nCellsSecI = (layer-1)*pGrid%Imax 
@@ -363,7 +363,7 @@ SUBROUTINE PLAG_RFLU_InitSolutionHardcode(pRegion)
 
         rn     = Rand1Uniform(pRegion%randData) 
         diam   = diamMin + diamDel*rn
-        pclVol = global%pi*diam**3.0_RFREAL/6.0_RFREAL
+        pclVol = global%pi*diam**3/6.0_RFREAL
 
         rn     = Rand1Uniform(pRegion%randData) 
         temp   = tempMin  + tempDel*rn
@@ -431,9 +431,9 @@ SUBROUTINE PLAG_RFLU_InitSolutionHardcode(pRegion)
        pCv(CV_PLAG_YMOM,iPcl) = massSum*v 
        pCv(CV_PLAG_ZMOM,iPcl) = massSum*w 
        pCv(CV_PLAG_ENER,iPcl) = heatCapSum*temp + & 
-                                massSum*0.5_RFREAL*((massSumR*pCv(CV_PLAG_XMOM,iPcl))**2.0_RFREAL + &
-                                            (massSumR*pCv(CV_PLAG_YMOM,iPcl))**2.0_RFREAL + &
-                                            (massSumR*pCv(CV_PLAG_ZMOM,iPcl))**2.0_RFREAL)
+                                massSum*0.5_RFREAL*((massSumR*pCv(CV_PLAG_XMOM,iPcl))**2 + &
+                                            (massSumR*pCv(CV_PLAG_YMOM,iPcl))**2 + &
+                                            (massSumR*pCv(CV_PLAG_ZMOM,iPcl))**2)
 
        pArv(ARV_PLAG_SPLOAD,iPcl) = spLoad
        pAiv(AIV_PLAG_PIDINI,iPcl) = iPcl   

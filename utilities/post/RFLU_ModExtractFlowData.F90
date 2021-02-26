@@ -3284,7 +3284,7 @@ SUBROUTINE RFLU_ExtractFlowDataSphdet(pRegion)
     xx   = pGrid%cofg(XCOORD,icg)
     yy   = pGrid%cofg(YCOORD,icg)
     zz   = pGrid%cofg(ZCOORD,icg)
-    rad  = SQRT(xx**2.0_RFREAL + yy**2.0_RFREAL + zz**2.0_RFREAL) 
+    rad  = DSQRT(xx**2 + yy**2 + zz**2) 
     the  = ACOS(zz/rad) * 180/PI
     phi  = ATAN(yy/xx)  * 180/PI
     !phi  = ASIN(yy/SQRT(xx**2.0_RFREAL + yy**2.0_RFREAL)) * 180/PI
@@ -3630,8 +3630,8 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 
    DO k=1,TotCells
 
-           rho(k) = SQRT(pGrid%cofg(XCOORD,k)**2.0_RFREAL &
-                                 + pGrid%cofg(YCOORD,k)**2.0_RFREAL)
+           rho(k) = DSQRT(pGrid%cofg(XCOORD,k)**2 &
+                        + pGrid%cofg(YCOORD,k)**2)
 
   !         zLoc(k) = pGrid%cofg(ZCOORD,k)
 
@@ -3683,8 +3683,8 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 
   DO rLayer = 1,Kmax
     icg = (rLayer-1)*(Imax) + 1
-    radius(rLayer+rLayers0) = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL &
-                                 + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+    radius(rLayer+rLayers0) = DSQRT(pGrid%cofg(XCOORD,icg)**2 &
+                                  + pGrid%cofg(YCOORD,icg)**2)
     DO zLayer = 1,Jmax 
       icgBeg = (zLayer-1)*(Kmax*Imax + nCellsSecIPerLayer) + &
                (rLayer-1)*Imax + 1
@@ -3701,15 +3701,15 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
                                  + pRegion%mixt%dv(DV_MIXT_SOUN,icg) * pGrid%vol(icg)
 
         uGas(rLayer+rlayers0)    = uGas(rlayer+rLayers0) &
-                                 + SQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icg)**2.0_RFREAL &
-                                 + pRegion%mixt%cv(CV_MIXT_YMOM,icg)**2.0_RFREAL) &
+                                 + DSQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icg)**2 &
+                                 + pRegion%mixt%cv(CV_MIXT_YMOM,icg)**2) &
 			         *  pGrid%vol(icg)/pRegion%mixt%cv(CV_MIXT_DENS,icg)
 
 #ifdef PLAG
         IF (global%plagUsed .EQV. .TRUE.) THEN
         vFracE(rLayer+rLayers0)  = vFracE(rlayer+rLayers0) & 
                                  + pRegion%plag%vFracE(1,icg) * pGrid%vol(icg)
-        pVelo(rLayers0+rLayer) = pVelo(rLayers0+rLayer) + SQRT(pPv(iLocUp,icg)**2 &
+        pVelo(rLayers0+rLayer) = pVelo(rLayers0+rLayer) + DSQRT(pPv(iLocUp,icg)**2 &
                          + pPv(iLocVp,icg)**2 +pPv(iLocWp,icg)**2)*pGrid%vol(icg)
         END IF !Plag
 #endif
@@ -3756,8 +3756,8 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 
   DO rLayer = 1,rLayers0
     icg = (Kmax*Imax) + (rLayer-1)*(Imax/4 + 1) + 1
-    radius(rLayers0-rLayer+1) = SQRT(pGrid%cofg(XCOORD,icg)**2.0_RFREAL &
-                              + pGrid%cofg(YCOORD,icg)**2.0_RFREAL)
+    radius(rLayers0-rLayer+1) = DSQRT(pGrid%cofg(XCOORD,icg)**2 &
+                              + pGrid%cofg(YCOORD,icg)**2)
     DO zLayer = 1,Jmax 
       tLayers0 = Imax/4 - 2*(rLayer-1)
       DO tLayer = 1,tLayers0
@@ -3776,8 +3776,8 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
                                        + pRegion%mixt%dv(DV_MIXT_TEMP,icg) &
                                        * pGrid%vol(icg)
             uGas(rLayers0-rlayer+1)    = uGas(rlayers0-rLayer+1) &
-                                       + SQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icg)**2.0_RFREAL &
-                                       +      pRegion%mixt%cv(CV_MIXT_YMOM,icg)**2.0_RFREAL ) &
+                                       + DSQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icg)**2 &
+                                       +       pRegion%mixt%cv(CV_MIXT_YMOM,icg)**2) &
 		                       *  pGrid%vol(icg)/pRegion%mixt%cv(CV_MIXT_DENS,icg)
             sos(rLayers0-rLayer+1) = sos(rlayers0-rLayer+1) &
                                        + pRegion%mixt%dv(DV_MIXT_SOUN,icg) &
@@ -3827,11 +3827,11 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
                                      + ( pRegion%mixt%dv(DV_MIXT_TEMP,icgEnd) &
                                      * pGrid%vol(icgEnd) )
           uGas(rLayers0-rlayer+1)  = uGas(rlayers0-rLayer+1) &
-                                     + ( SQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icgBeg)**2.0_RFREAL &
-                                     +        pRegion%mixt%cv(CV_MIXT_YMOM,icgBeg)**2.0_RFREAL ) &
+                                     + ( SQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icgBeg)**2 &
+                                     +        pRegion%mixt%cv(CV_MIXT_YMOM,icgBeg)**2 ) &
 		                     *  pGrid%vol(icgBeg)/pRegion%mixt%cv(CV_MIXT_DENS,icgBeg) ) &
-                                     + ( SQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icgEnd)**2.0_RFREAL &
-                                     +        pRegion%mixt%cv(CV_MIXT_YMOM,icgEnd)**2.0_RFREAL ) &
+                                     + ( SQRT(pRegion%mixt%cv(CV_MIXT_XMOM,icgEnd)**2 &
+                                     +        pRegion%mixt%cv(CV_MIXT_YMOM,icgEnd)**2 ) &
 		                     *  pGrid%vol(icgEnd)/pRegion%mixt%cv(CV_MIXT_DENS,icgEnd) )
           sos(rLayers0-rLayer+1) = sos(rlayers0-rLayer+1) &
                                      + ( pRegion%mixt%dv(DV_MIXT_SOUN,icgBeg) &
@@ -3994,7 +3994,8 @@ SUBROUTINE RFLU_ExtractFlowDataCyldet(pRegion)
 
      DO iPcl = 1,pPlag%nPcls
 
-          VR=SQRT(pPlag%dv(DV_PLAG_UVEL,iPcl)**2.0_RFREAL+pPlag%dv(DV_PLAG_VVEL,iPcl)**2.0_RFREAL)
+          VR = DSQRT(pPlag%dv(DV_PLAG_UVEL,iPcl)**2 + &
+                     pPlag%dv(DV_PLAG_VVEL,iPcl)**2)
           WRITE(3246,'(5(1X,E13.6))') pPlag%cv(CV_PLAG_XPOS,iPcl), &
                                             pPlag%cv(CV_PLAG_YPOS,iPcl), &
                                             pPlag%arv(ARV_PLAG_SPLOAD,iPcl), &
@@ -5584,7 +5585,7 @@ SUBROUTINE RFLU_ExtractFlowDataSurfSphds(pRegion)
     cosTheta = xx/(xx*xx+yy*yy+zz*zz)**0.5_RFREAL
     angle    = ACOS(cosTheta)*180.0_RFREAL/global%pi
 
-    cp_potential = 0.25_RFREAL*(9.0_RFREAL*cosTheta**2.0_RFREAL - 5.0_RFREAL)
+    cp_potential = 0.25_RFREAL*(9.0_RFREAL*cosTheta**2 - 5.0_RFREAL)
     cp_acc       = cp_potential &
                  + 0.5_RFREAL*global%refDensity*Radius*(-accX)*cosTheta/q_inf
     cp           = pPatch%cp(ix)

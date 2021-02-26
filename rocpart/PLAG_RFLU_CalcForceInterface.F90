@@ -180,7 +180,7 @@ IF(1==1) THEN
     DO iPcls = 1,nPcls
       icg = pPlag%aiv(AIV_PLAG_ICELLS,iPcls)
       diamL   = pDv(DV_PLAG_DIAM,iPcls)
-      volL    = (pi*(diamL**3.0_RFREAL)/6.0_RFREAL)
+      volL    = (pi*(diamL**3)/6.0_RFREAL)
       volMixt = region%grid%vol(icg) 
 
       vFrac = pPlag%vFracL(1,iPcls)
@@ -192,16 +192,16 @@ IF(1==1) THEN
       u_g    = pDv(DV_PLAG_UVELMIXT,iPcls)
       v_g    = pDv(DV_PLAG_VVELMIXT,iPcls)
       w_g    = pDv(DV_PLAG_WVELMIXT,iPcls)
-      Qg    = (u_g*u_g + v_g*v_g + w_g*w_g)**0.5_RFREAL
+      Qg    = SQRT(u_g*u_g + v_g*v_g + w_g*w_g)
 
       u_p    = pDv(DV_PLAG_UVEL,iPcls)
       v_p    = pDv(DV_PLAG_VVEL,iPcls)
       w_p    = pDv(DV_PLAG_WVEL,iPcls)
-      Qp    = (u_p*u_p + v_p*v_p + w_p*w_p)**0.5_RFREAL
+      Qp    = SQRT(u_p*u_p + v_p*v_p + w_p*w_p)
 
       p = pDv(DV_PLAG_PRESMIXT,iPcls)
       rhog  = pDv(DV_PLAG_DENSMIXT,iPcls)/(1.0_RFREAL-vFrac)
-      delp  = CpUp*vFrac*rhog*(Qg-Qp)**2.0_RFREAL
+      delp  = CpUp*vFrac*rhog*(Qg-Qp)**2
       delp  = MIN(delp,eps*p)
 
 !      pint = p - delp

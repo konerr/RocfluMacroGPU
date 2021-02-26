@@ -171,7 +171,7 @@ SUBROUTINE SPEC_RFLU_InitFlowHardCode(pRegion)
         DO icg = 1,pGrid%nCellsTot
           x = pGrid%cofg(XCOORD,icg)
           y = pGrid%cofg(YCOORD,icg)
-          rad = SQRT(x**2.0_RFREAL + y**2.0_RFREAL)
+          rad = DSQRT(x**2 + y**2)
           IF ( rad <= pMixtInput%prepRealVal1 ) THEN
             pCvSpec(iCvSpecAir,icg)       = 0.0_RFREAL
             pCvSpec(iCvSpecProducts,icg)  = 1.0_RFREAL

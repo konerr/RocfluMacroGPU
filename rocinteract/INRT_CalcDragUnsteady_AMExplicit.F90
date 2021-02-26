@@ -180,7 +180,7 @@ SUBROUTINE INRT_CalcDragUnsteady_AMExplicit( region )
       icg = pPlag%aiv(AIV_PLAG_ICELLS,iPcls)
 
       diamL   = pDv(DV_PLAG_DIAM,iPcls)
-      volL    = (pi*(diamL**3.0_RFREAL)/6.0_RFREAL)
+      volL    = (pi*(diamL**3)/6.0_RFREAL)
       volMixt = region%grid%vol(icg) 
 
       vFrac = pPlag%vFracL(1,iPcls)
@@ -236,11 +236,11 @@ SUBROUTINE INRT_CalcDragUnsteady_AMExplicit( region )
         DO iT=2,region%plagInput%nTimeBH-1
           time = pPlag%timeBH(iT)
 
-          A  = (4.0_RFREAL*pi*time*nu/diamL**2.0_RFREAL)**(.25_RFREAL)
-          B  = (0.5_RFREAL*pi*(relVelMagL**3.0_RFREAL)*(time**2.0_RFREAL)/ &
-               (0.5_RFREAL*diamL*nu*fH**3.0_RFREAL))**(.5_RFREAL)
+          A  = (4.0_RFREAL*pi*time*nu/diamL**2)**(.25_RFREAL)
+          B  = (0.5_RFREAL*pi*(relVelMagL**3)*(time**2)/ &
+               (0.5_RFREAL*diamL*nu*fH**3))**(.5_RFREAL)
 
-          kernelVU = factor*(A+B)**(-2.0_RFREAL)
+          kernelVU = factor*(A+B)**(-2)
 
           forceVU(XCOORD) = forceVU(XCOORD) &
                       + kernelVU*(dudtMixt(XCOORD,iT,iPcls)-dudtPlag(XCOORD,iT,iPcls)) 
@@ -253,11 +253,11 @@ SUBROUTINE INRT_CalcDragUnsteady_AMExplicit( region )
         iT   = region%plagInput%nTimeBH
         time = pPlag%timeBH(iT)
 
-        A  = (4.0_RFREAL*pi*time*nu/diamL**2.0_RFREAL)**(.25_RFREAL)
-        B  = (0.5_RFREAL*pi*(relVelMagL**3.0_RFREAL)*(time**2.0_RFREAL)/ &
-             (0.5_RFREAL*diamL*nu*fH**3.0_RFREAL))**(.5_RFREAL)
+        A  = (4.0_RFREAL*pi*time*nu/diamL**2)**(.25_RFREAL)
+        B  = (0.5_RFREAL*pi*(relVelMagL**3)*(time**2)/ &
+             (0.5_RFREAL*diamL*nu*fH**3))**(.5_RFREAL)
 
-        kernelVU = 0.5_RFREAL*factor*(A+B)**(-2.0_RFREAL)
+        kernelVU = 0.5_RFREAL*factor*(A+B)**(-2)
 
         forceVU(XCOORD) = forceVU(XCOORD) &
                       + kernelVU*(dudtMixt(XCOORD,iT,iPcls)-dudtPlag(XCOORD,iT,iPcls)) 
@@ -373,7 +373,7 @@ SUBROUTINE INRT_CalcDragUnsteady_AMExplicit( region )
       icg = pPlag%aiv(AIV_PLAG_ICELLS,iPcls)
 
       diamL   = pDv(DV_PLAG_DIAM,iPcls)
-      volL    = (pi*(diamL**3.0_RFREAL)/6.0_RFREAL)
+      volL    = (pi*(diamL**3)/6.0_RFREAL)
       volMixt = region%grid%vol(icg)
 
       vFrac = pPlag%vFracL(1,iPcls)
@@ -396,10 +396,10 @@ SUBROUTINE INRT_CalcDragUnsteady_AMExplicit( region )
 
       if ( machL < 0.6_RFREAL ) THEN
         CamEff = 0.5_RFREAL*(1.0_RFREAL + 1.8_RFREAL*machL*machL &
-                                        + 7.6_RFREAL*machL**4.0_RFREAL)
+                                        + 7.6_RFREAL*machL**4)
       ELSE
         CamEff = 0.5_RFREAL*(1.0_RFREAL + 1.8_RFREAL*0.6_RFREAL*0.6_RFREAL &
-                                        + 7.6_RFREAL*0.6_RFREAL**4.0_RFREAL)
+                                        + 7.6_RFREAL*0.6_RFREAL**4)
       END IF ! machL
 
 ! -----------------------------------------------------------------------------

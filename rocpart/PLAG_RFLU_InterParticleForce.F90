@@ -176,7 +176,7 @@ SUBROUTINE PLAG_RFLU_InterParticleForce(pRegion)
     icg = pAiv(AIV_PLAG_ICELLS,iPcl)
 
     diamL = pPlag%dv(DV_PLAG_DIAM,iPcl)
-    volL  = (pi*(diamL**3.0_RFREAL)/6.0_RFREAL)
+    volL  = (pi*(diamL**3)/6.0_RFREAL)
 
     massL = SUM( pCv(pCvPlagMass(:),iPcl) )
 
@@ -212,7 +212,7 @@ SUBROUTINE PLAG_RFLU_InterParticleForce(pRegion)
      factor = C1*(phi*phi*phi)*exp((r*phi)/(phiCP-phi))
    ELSE
      factor = volL*Ps*( beta*phi**(beta-2.0_RFREAL)/(ABS(phiCP-phi)) &
-                          + phi**(beta-1.0_RFREAL)/(ABS(phiCP-phi))**2.0_RFREAL)
+                          + phi**(beta-1.0_RFREAL)/(ABS(phiCP-phi))**2)
    END IF !Fred - Setting Harris-Crighton Model as default
 
     pPlagRhs(CV_PLAG_XMOM,iPcl) = pPlagRhs(CV_PLAG_XMOM,iPcl) &

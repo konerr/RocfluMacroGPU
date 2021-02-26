@@ -52,7 +52,7 @@
     yloc = pPlag%cv(CV_PLAG_YPOS,iPcl)
     zLoc = pPlag%cv(CV_PLAG_ZPOS,iPcl)
 
-    radLoc = SQRT(xLoc**2.0_RFREAL + yLoc**2.0_RFREAL)
+    radLoc = DSQRT(xLoc**2 + yLoc**2)
     theLoc = ATAN2(yLoc,xLoc)
     drad = global%drad
     dthe = global%dthe

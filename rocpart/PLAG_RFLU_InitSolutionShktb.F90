@@ -265,7 +265,7 @@ SUBROUTINE PLAG_RFLU_InitSolutionShktb(pRegion,nPclsSumReg)
           foundFlag = .TRUE.
 
           dia = meanDia !+ Rand1Normal(meanDia,stdDev) ! Add stdDev later
-          volPcl = global%pi*dia**3.0_RFREAL/6.0_RFREAL
+          volPcl = global%pi*dia**3/6.0_RFREAL
 ! ******************************************************************************
 ! Compute mass of each particle and initialize each particle with x,y and z
 ! momentum in addition to total energy
@@ -284,9 +284,9 @@ SUBROUTINE PLAG_RFLU_InitSolutionShktb(pRegion,nPclsSumReg)
           pCv(CV_PLAG_ZMOM,iPcl) = massSum*w
           pCv(CV_PLAG_ENER,iPcl) = heatCapSum*T + &
                                    massSum*0.5_RFREAL* &
-                                      ((massSumR*pCv(CV_PLAG_XMOM,iPcl))**2.0_RFREAL+ &
-                                       (massSumR*pCv(CV_PLAG_YMOM,iPcl))**2.0_RFREAL+ &
-                                       (massSumR*pCv(CV_PLAG_ZMOM,iPcl))**2.0_RFREAL)
+                                      ((massSumR*pCv(CV_PLAG_XMOM,iPcl))**2+ &
+                                       (massSumR*pCv(CV_PLAG_YMOM,iPcl))**2+ &
+                                       (massSumR*pCv(CV_PLAG_ZMOM,iPcl))**2)
           volPclsSum = volPclsSum + volPcl
 
           iPcl = iPcl + 1
