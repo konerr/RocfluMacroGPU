@@ -27,6 +27,47 @@ MPIINC=
 
 MACHINE= $(shell uname -n)
 
+### Ascent at ORNL #########################
+ifeq ($(findstring login1,$(MACHINE)),login1)
+  MPIINC=
+  BGLIBS=
+  COMP=mpixlf
+  FC=mpixlf
+  CXX=mpixlC
+  CXXFLAGS=
+  CXXOPT=
+  LINKER=$(COMP)
+  IBMSYSLIB= $(LD_LIBRARY_PATH) #/opt/ibmcmp/vacpp/bg/12.1/bglib64,-R/opt/ibmcmp/lib64/bg/bglib64 -L/opt/ibmcmp/vacpp/bg/12.1/bglib64
+  CXXLINKFLAGS= -L$(IBMSYSLIB) -lxlopt -lxl -lstdc++ -lm -lgcc -lm -lc $(BGLIBS)
+  FORTFLAGS= -DFORTRAN_LOWERCASE
+
+  ifdef DEBUG
+    CMFLAGS=-g $(MPIINC) -qinitalloc -qinitauto
+    LDFLAGS=-v -g $(MPILIB)
+  else
+    #CMFLAGS=-qinitalloc -qinitauto -O3 -qstrict -qtune=auto -qarch=auto -qxlf2003=POLYmorphic $(MPIINC)
+    #LDFLAGS=-v -O3 -qstrict -qtune=auto -qarch=auto -qxlf2003=POLYmorphic $(MPILIB) $(BGLIBS)
+    CMFLAGS=-O2
+    LDFLAGS=-O2 -lgfortran
+  endif
+
+  ifdef PROF
+    CMFLAGS=-O3 -qstrict -qtune=auto -qarch=auto -p $(MPIINC)
+    LDFLAGS=-O3 -qstrict -qtune=auto -qarch=auto -p $(BGLIBS) $(MPILIB)
+  endif
+
+  ifdef ROCPROF
+    FPPFLAGS+= -DROCPROF
+    LIBSYS+= -L$(ROCPROF)/lib -lRocprof
+  endif
+
+  #LIBMET = /usr/local/tools/petsc-3.4.0/lib/libmetis.a
+  LIBMET= ../../libmetis/libmetis.a
+  FPPFLAGS+=-DNO_TECPLOT
+
+endif
+
+
 ### Hipergator at UF ######################## 
 ifeq ($(findstring rahul-Dell,$(MACHINE)),rahul-Dell)
   
@@ -394,7 +435,7 @@ endif
 ifeq ($(FC),tau_f90.sh)
 	$(COMP) $(FPPFLAGS) $(CMFLAGS) $(MODDIR:%=-I%) -c $< -o $@
 endif
-ifeq ($(FC),mpixlf90_r)
+ifeq ($(FC),mpixlf)
 %.o: %.F90
 	$(COMP) $(FPPFLAGS:-D%=-WF,-D%) $(CMFLAGS:-D%=-WF,-D%) \
 	$(MODDIR:%=-I%) -qsuffix=f=f90:cpp=F90 -qthreaded -c $< -o $@
@@ -402,7 +443,7 @@ endif
 %.f90: %.F90
 	$(CPP) -P -traditional $(FPPFLAGS) $< $@
 %.o: %.f
-ifeq ($(FC),mpixlf90_r)
+ifeq ($(FC),mpixlf)
 	$(FC) $(CMFLAGS:-D%=-WF,-D%) -qsuffix=f=f -qfixed -c $< -o $@
 else
 	$(COMP) $(CMFLAGS) $(F90_CPP) $(F90FLAGS_FIXED) -c $< -o $@
