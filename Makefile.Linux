@@ -38,7 +38,7 @@ ifeq ($(findstring login1,$(MACHINE)),login1)
   CXXOPT=
   LINKER=$(COMP)
   IBMSYSLIB= $(LD_LIBRARY_PATH) #/opt/ibmcmp/vacpp/bg/12.1/bglib64,-R/opt/ibmcmp/lib64/bg/bglib64 -L/opt/ibmcmp/vacpp/bg/12.1/bglib64
-  CXXLINKFLAGS= -L$(IBMSYSLIB) -lxlopt -lxl -lstdc++ -lm -lgcc -lm -lc $(BGLIBS)
+  CXXLINKFLAGS= -L$(IBMSYSLIB) -lxlopt -lxl -lstdc++ -lm -lgcc -lm -lc $(BGLIBS) /sw/ascent/xl/16.1.1-10/xlC/16.1.1/lib/libibmc++.a
   FORTFLAGS= -DFORTRAN_LOWERCASE
 
   ifdef DEBUG
@@ -62,7 +62,7 @@ ifeq ($(findstring login1,$(MACHINE)),login1)
   endif
 
   #LIBMET = /usr/local/tools/petsc-3.4.0/lib/libmetis.a
-  LIBMET= ../../libmetis/libmetis.a
+  LIBMET= -lmetis #../../libmetis/libmetis.a
   FPPFLAGS+=-DNO_TECPLOT
 
 endif
