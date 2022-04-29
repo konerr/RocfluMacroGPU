@@ -26,42 +26,114 @@ MPIINC=
 ### Machine-dependent settings ################################################
 
 MACHINE= $(shell uname -n)
+COMPILER= $(shell mpif90 --showme)
 
 ### Ascent at ORNL #########################
 ifeq ($(findstring login1,$(MACHINE)),login1)
-  MPIINC=
-  BGLIBS=
-  COMP=mpif90
-  FC=mpif90
-  CXX=mpiCC
-  CXXFLAGS=
-  CXXOPT=
-  LINKER=$(CXX)
-  IBMSYSLIB= $(LD_LIBRARY_PATH)
-  CXXLINKFLAGS= -L$(IBMSYSLIB) -lstdc++ -lm -lc -lgcc $(BGLIBS)
-  CXXLINKFLAGS+= -pgf90libs -lmpi_ibm -lmpi_ibm_usempif08 -lmpi_ibm_mpifh 
-  FORTFLAGS= -DFORTRAN_UNDERSCORE -DFORTRAN_LOWERCASE
+  ifeq ($(findstring xl,$(COMPILER)),xl)
+    MPIINC=
+    BGLIBS=
+    COMP=mpixlf
+    FC=mpixlf
+    CXX=mpixlC
+    CXXFLAGS=
+    CXXOPT=
+    LINKER=$(COMP)
+    IBMSYSLIB= $(LD_LIBRARY_PATH)
+    CXXLINKFLAGS= -L$(IBMSYSLIB) -lxlopt -lxl -lstdc++ -lm -lgcc -lm -lc $(BGLIBS) /sw/ascent/xl/16.1.1-10/xlC/16.1.1/lib/libibmc++.a
+    FORTFLAGS= -DFORTRAN_LOWERCASE
 
-  ifdef DEBUG
-    CMFLAGS=-g
-    LDFLAGS=-v -g -lgfortran
-  else
-    CMFLAGS=-O2
-    LDFLAGS=-O2 -lgfortran
+    ifdef DEBUG
+      CMFLAGS=-g $(MPIINC) -qinitalloc -qinitauto
+      LDFLAGS=-v -g $(MPILIB)
+    else
+      CMFLAGS=-O2
+      LDFLAGS=-O2 -lgfortran
+    endif
+
+    ifdef PROF
+      CMFLAGS=-O3 -qstrict -qtune=auto -qarch=auto -p $(MPIINC)
+      LDFLAGS=-O3 -qstrict -qtune=auto -qarch=auto -p $(BGLIBS) $(MPILIB)
+    endif
+
+    ifdef ROCPROF
+      FPPFLAGS+= -DROCPROF
+      LIBSYS+= -L$(ROCPROF)/lib -lRocprof
+    endif
+
+    LIBMET= -lmetis
+    FPPFLAGS+=-DNO_TECPLOT
   endif
+  ifeq ($(findstring nvhpc,$(COMPILER)),nvhpc)
+    MPIINC=
+    BGLIBS=
+    COMP=mpif90
+    FC=mpif90
+    CXX=mpiCC
+    CXXFLAGS=
+    CXXOPT=
+    LINKER=$(CXX)
+    IBMSYSLIB= $(LD_LIBRARY_PATH)
+    CXXLINKFLAGS= -L$(IBMSYSLIB) -lstdc++ -lm -lc -lgcc $(BGLIBS)
+    CXXLINKFLAGS+= -pgf90libs -lmpi_ibm -lmpi_ibm_usempif08 -lmpi_ibm_mpifh 
+    FORTFLAGS= -DFORTRAN_UNDERSCORE -DFORTRAN_LOWERCASE
 
-  ifdef PROF
-    CMFLAGS+=-pg
-    LDFLAGS+=-pg
+    ifdef DEBUG
+      CMFLAGS=-g
+      LDFLAGS=-v -g -lgfortran
+    else
+      CMFLAGS=-O2
+      LDFLAGS=-O2 -lgfortran
+    endif
+
+    ifdef PROF
+      CMFLAGS+=-pg
+      LDFLAGS+=-pg
+    endif
+
+    ifdef ROCPROF
+      FPPFLAGS+= -DROCPROF
+      LIBSYS+= -L$(ROCPROF)/lib -lRocprof
+    endif
+
+    LIBMET= -lmetis
+    FPPFLAGS+=-DNO_TECPLOT -Uvector
   endif
+  ifeq ($(findstring gcc,$(COMPILER)),gcc)
+    MPIINC=
+    BGLIBS=
+    COMP=mpif90
+    FC=mpif90
+    CXX=mpiCC
+    CXXFLAGS=
+    CXXOPT=
+    LINKER=$(CXX)
+    IBMSYSLIB= $(LD_LIBRARY_PATH)
+    CXXLINKFLAGS= -L$(IBMSYSLIB) -lstdc++ -lm -lc -lgcc $(BGLIBS)
+    CXXLINKFLAGS+= -lmpi_ibm -lmpi_ibm_usempif08 -lmpi_ibm_mpifh 
+    FORTFLAGS= -DFORTRAN_UNDERSCORE -DFORTRAN_LOWERCASE
 
-  ifdef ROCPROF
-    FPPFLAGS+= -DROCPROF
-    LIBSYS+= -L$(ROCPROF)/lib -lRocprof
+    ifdef DEBUG
+      CMFLAGS=-g
+      LDFLAGS=-v -g -lgfortran
+    else
+      CMFLAGS=-O2
+      LDFLAGS=-O2 -lgfortran
+    endif
+
+    ifdef PROF
+      CMFLAGS+=-pg
+      LDFLAGS+=-pg
+    endif
+
+    ifdef ROCPROF
+      FPPFLAGS+= -DROCPROF
+      LIBSYS+= -L$(ROCPROF)/lib -lRocprof
+    endif
+
+    LIBMET= -lmetis
+    FPPFLAGS+=-DNO_TECPLOT -Uvector
   endif
-
-  LIBMET= -lmetis
-  FPPFLAGS+=-DNO_TECPLOT -Uvector
 
 endif
 
