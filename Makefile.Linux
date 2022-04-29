@@ -36,9 +36,10 @@ ifeq ($(findstring login1,$(MACHINE)),login1)
   CXX=mpiCC
   CXXFLAGS=
   CXXOPT=
-  LINKER=$(COMP)
+  LINKER=$(CXX)
   IBMSYSLIB= $(LD_LIBRARY_PATH)
   CXXLINKFLAGS= -L$(IBMSYSLIB) -lstdc++ -lm -lc -lgcc $(BGLIBS)
+  CXXLINKFLAGS+= -pgf90libs -lmpi_ibm -lmpi_ibm_usempif08 -lmpi_ibm_mpifh 
   FORTFLAGS= -DFORTRAN_UNDERSCORE -DFORTRAN_LOWERCASE
 
   ifdef DEBUG
