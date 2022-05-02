@@ -78,7 +78,7 @@ MODULE RFLU_ModDifferentiationCells
   USE ModMPI
   
   USE RFLU_ModConstraintUtils
-  
+
   IMPLICIT NONE
 
   PRIVATE
@@ -785,6 +785,7 @@ MODULE RFLU_ModDifferentiationCells
 !    END DO ! icg
 ! END DEBUG
 
+    !$acc parallel loop gang vector
     DO icg = 1,pGrid%nCellsTot                       
       r11 = pGrid%c2cs(icg)%xyzMoms(XYZ_MOM_11)           
       r12 = pGrid%c2cs(icg)%xyzMoms(XYZ_MOM_12) 

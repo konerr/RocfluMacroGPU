@@ -76,14 +76,15 @@ ifeq ($(findstring login1,$(MACHINE)),login1)
     IBMSYSLIB= $(LD_LIBRARY_PATH)
     CXXLINKFLAGS= -L$(IBMSYSLIB) -lstdc++ -lm -lc -lgcc $(BGLIBS)
     CXXLINKFLAGS+= -pgf90libs -lmpi_ibm -lmpi_ibm_usempif08 -lmpi_ibm_mpifh 
+    CXXLINKFLAGS+= -ta=tesla:cc70
     FORTFLAGS= -DFORTRAN_UNDERSCORE -DFORTRAN_LOWERCASE
 
     ifdef DEBUG
       CMFLAGS=-g
       LDFLAGS=-v -g -lgfortran
     else
-      CMFLAGS=-O2
-      LDFLAGS=-O2 -lgfortran
+      CMFLAGS=-O2 -g -acc=gpu -gpu=managed -Minfo=acc 
+      LDFLAGS=-O2 -g -lgfortran 
     endif
 
     ifdef PROF
