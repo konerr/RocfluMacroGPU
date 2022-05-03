@@ -387,6 +387,8 @@ MODULE RFLU_ModWeights
 ! ******************************************************************************
 
     pGrid => pRegion%grid
+    !$acc enter data attach(pRegion)
+    !$acc enter data attach(pGrid)
 
 ! ******************************************************************************
 !   Nullify memory
@@ -411,6 +413,7 @@ MODULE RFLU_ModWeights
             DO icg = 1,pGrid%nCellsTot 
               ALLOCATE(pGrid%c2cs(icg)%xyzMoms(XYZ_MOM_11:XYZ_MOM_33), & 
                        STAT=errorFlag)                   
+              !$acc enter data create(pGrid%c2cs(icg)%xyzMoms)
               global%error = errorFlag
               IF ( global%error /= ERR_NONE ) THEN 
                 CALL ErrorStop(global,ERR_ALLOCATE,__LINE__, &
@@ -421,6 +424,7 @@ MODULE RFLU_ModWeights
             DO icg = 1,pGrid%nCellsTot 
               ALLOCATE(pGrid%c2cs(icg)%xyzMoms(XYZ_MOM_11:XYZ_MOM_44), & 
                        STAT=errorFlag)                   
+              !$acc enter data create(pGrid%c2cs(icg)%xyzMoms)
               global%error = errorFlag
               IF ( global%error /= ERR_NONE ) THEN 
                 CALL ErrorStop(global,ERR_ALLOCATE,__LINE__, &
@@ -450,6 +454,9 @@ MODULE RFLU_ModWeights
     END IF ! global%verbLevel  
 
     CALL DeregisterFunction(global)  
+
+    !$acc exit data detach(pGrid)
+    !$acc exit data detach(pRegion)
 
   END SUBROUTINE RFLU_CreateWtsC2C
 
@@ -1065,6 +1072,8 @@ MODULE RFLU_ModWeights
 ! ******************************************************************************
 
     pGrid => pRegion%grid
+    !$acc enter data attach(pGrid)
+    !$acc enter data attach(pRegion)
 
 ! ******************************************************************************
 !   Compute weights
@@ -1155,6 +1164,10 @@ MODULE RFLU_ModWeights
     END IF ! global%verbLevel  
 
     CALL DeregisterFunction(global)  
+
+    !$acc update device(pGrid%c2cs(icg)%xyzMoms)
+    !$acc exit data detach(pGrid)
+    !$acc exit data detach(pRegion)
 
   END SUBROUTINE RFLU_ComputeWtsC2C
 

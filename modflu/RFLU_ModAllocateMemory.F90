@@ -493,18 +493,21 @@ SUBROUTINE RFLU_AllocateMemorySolCv(pRegion)
 
   pGrid      => pRegion%grid
   pMixtInput => pRegion%mixtInput
+  !$acc enter data attach(pRegion)
 
 ! ******************************************************************************
 ! Allocate memory
 ! ******************************************************************************
 
   ALLOCATE(pRegion%mixt%cv(pMixtInput%nCv,pGrid%nCellsTot),STAT=errorFlag)
+  !$acc enter data create(pRegion%mixt%cv)
   global%error = errorFlag
   IF (global%error /= ERR_NONE) THEN
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%cv')
   END IF ! global%error
 
   ALLOCATE(pRegion%mixt%cvInfo(pMixtInput%nCv),STAT=errorFlag)
+  !$acc enter data create(pRegion%mixt%cvInfo)
   global%error = errorFlag
   IF (global%error /= ERR_NONE) THEN
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%cvInfo')
@@ -546,6 +549,8 @@ SUBROUTINE RFLU_AllocateMemorySolCv(pRegion)
 ! ******************************************************************************
 
   CALL DeregisterFunction(global)
+
+  !$acc exit data detach(pRegion)
 
 END SUBROUTINE RFLU_AllocateMemorySolCv
 
@@ -857,6 +862,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
   pGridOld   => pRegion%gridOld
   pGridOld2  => pRegion%gridOld2
   pMixtInput => pRegion%mixtInput
+  !$acc enter data attach (pRegion)
 
 ! ******************************************************************************
 ! Allocate memory
@@ -984,6 +990,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
       ALLOCATE(pRegion%mixt%gradCell(XCOORD:ZCOORD, &
                                      GRC_MIXT_XVEL:GRC_MIXT_PRES, &
                                      pGrid%nCellsTot),STAT=errorFlag)
+      !$acc enter data create(pRegion%mixt%gradCell)
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%gradCell')
@@ -992,6 +999,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
       ALLOCATE(pRegion%mixt%gradCellOld(XCOORD:ZCOORD, &
                                      GRC_MIXT_XVEL:GRC_MIXT_PRES, &
                                      pGrid%nCellsTot),STAT=errorFlag)
+      !$acc enter data create(pRegion%mixt%gradCellOld)
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__, &
@@ -1001,6 +1009,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
       ALLOCATE(pRegion%mixt%gradCell(XCOORD:ZCOORD, &
                                      GRC_MIXT_PRES:GRC_MIXT_PRES, &
                                      pGrid%nCellsTot),STAT=errorFlag)
+      !$acc enter data create(pRegion%mixt%gradCell)
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%gradCell')
@@ -1009,6 +1018,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
       ALLOCATE(pRegion%mixt%gradCellOld(XCOORD:ZCOORD, &
                                      GRC_MIXT_PRES:GRC_MIXT_PRES, &
                                      pGrid%nCellsTot),STAT=errorFlag)
+      !$acc enter data create(pRegion%mixt%gradCellOld)
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__, &
@@ -1019,6 +1029,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
     ALLOCATE(pRegion%mixt%gradCellOld2(XCOORD:ZCOORD, &
                                    GRC_MIXT_PRES:GRC_MIXT_PRES, &
                                    pGrid%nCellsTot),STAT=errorFlag)
+    !$acc enter data create(pRegion%mixt%gradCellOld2)
     global%error = errorFlag
     IF ( global%error /= ERR_NONE ) THEN
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__, & 
@@ -1033,6 +1044,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
         ALLOCATE(pRegion%mixt%gradCell(XCOORD:ZCOORD, &
                                        GRC_MIXT_DENS:GRC_MIXT_PRES, &
                                        pGrid%nCellsTot),STAT=errorFlag)
+        !$acc enter data create(pRegion%mixt%gradCell)
         global%error = errorFlag
         IF ( global%error /= ERR_NONE ) THEN
           CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%gradCell')
@@ -1044,6 +1056,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
       ALLOCATE(pRegion%mixt%gradCell(XCOORD:ZCOORD, &
                                      GRC_MIXT_XVEL:GRC_MIXT_ZVEL, &
                                      pGrid%nCellsTot),STAT=errorFlag)
+      !$acc enter data create(pRegion%mixt%gradCell)
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%gradCell')
@@ -1277,6 +1290,8 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
 ! ******************************************************************************
 
   CALL DeregisterFunction(global)
+
+  !$acc exit data detach (pRegion)
 
 END SUBROUTINE RFLU_AllocateMemoryTStep
 

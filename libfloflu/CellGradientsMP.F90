@@ -188,10 +188,12 @@ SUBROUTINE CellGradientsMP(region)
 !   Compute gradients
 ! ------------------------------------------------------------------------------
                                                                
+    !$acc update device(pRegion%mixt%cv)
     CALL RFLU_ComputeGradCellsWrapper(pRegion,CV_MIXT_DENS,CV_MIXT_PRES, &
                                       GRC_MIXT_DENS,GRC_MIXT_PRES, &
                                       varInfoMixt,pRegion%mixt%cv, &
                                       pRegion%mixt%gradCell)
+    !$acc update self(pRegion%mixt%gradCell)
                                       
 ! ------------------------------------------------------------------------------ 
 !   Modify gradients

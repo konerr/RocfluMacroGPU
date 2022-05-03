@@ -785,7 +785,10 @@ MODULE RFLU_ModDifferentiationCells
 !    END DO ! icg
 ! END DEBUG
 
-    !$acc parallel loop gang vector
+    !$acc enter data attach(pRegion)
+    !$acc enter data attach(pGrid)
+    !$acc enter data attach(grad,var)
+    !$acc parallel loop
     DO icg = 1,pGrid%nCellsTot                       
       r11 = pGrid%c2cs(icg)%xyzMoms(XYZ_MOM_11)           
       r12 = pGrid%c2cs(icg)%xyzMoms(XYZ_MOM_12) 
@@ -894,6 +897,9 @@ MODULE RFLU_ModDifferentiationCells
         END DO ! iVar
       END DO ! isl
     END DO ! icg
+    !$acc exit data detach(grad,var)
+    !$acc exit data detach(pGrid)
+    !$acc exit data detach(pRegion)
 
 ! DEBUG
 !    DO iGrad = iBegGrad,iEndGrad
@@ -915,6 +921,8 @@ MODULE RFLU_ModDifferentiationCells
 #endif
 
     CALL DeregisterFunction(global)
+
+
 
   END SUBROUTINE RFLU_ComputeGradCellsFast_2D
 

@@ -365,6 +365,8 @@ MODULE RFLU_ModGeometry
     END IF ! global%verbLevel
 
     pGrid => pRegion%grid
+    !$acc enter data attach(pRegion)
+    !$acc enter data attach(pGrid)
 
     IF ( PRESENT(sypeFaceFlag) .EQV. .FALSE. ) THEN 
       ignoreSypeFaces = .TRUE.
@@ -1250,6 +1252,15 @@ MODULE RFLU_ModGeometry
 
     CALL DeregisterFunction(global)
 
+    !$acc update device(pGrid%vol)
+    !$acc update device(pGrid%volus)
+    !$acc update device(pGrid%cofg)
+    !$acc update device(pGrid%fn)
+    !$acc update device(pGrid%fnmus)
+    !$acc update device(pGrid%fc)
+    !$acc exit data detach(pGrid)
+    !$acc exit data detach(pRegion)
+
   END SUBROUTINE RFLU_BuildGeometry
 
 
@@ -1855,6 +1866,8 @@ MODULE RFLU_ModGeometry
     END IF ! global%verbLevel
 
     pGrid => pRegion%grid
+    !$acc enter data attach(pRegion)
+    !$acc enter data attach(pGrid)
 
 ! ******************************************************************************
 !   Nullify memory
@@ -1876,6 +1889,7 @@ MODULE RFLU_ModGeometry
 ! ==============================================================================
 
     ALLOCATE(pGrid%vol(pGrid%nCellsTot),STAT=errorFlag)
+    !$acc enter data create(pGrid%vol)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%vol')
@@ -1884,6 +1898,7 @@ MODULE RFLU_ModGeometry
     IF ( (global%solverType == SOLV_IMPLICIT_HM) .AND. &
          (pRegion%mixtInput%axiFlag .EQV. .TRUE.) ) THEN
       ALLOCATE(pGrid%volus(pGrid%nCellsTot),STAT=errorFlag)
+      !$acc enter data create(pGrid%volus)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%volus')
@@ -1891,6 +1906,7 @@ MODULE RFLU_ModGeometry
     END IF ! global%solverType
 
     ALLOCATE(pGrid%cofg(XCOORD:ZCOORD,pGrid%nCellsTot),STAT=errorFlag)
+    !$acc enter data create(pGrid%cofg)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%cofg')
@@ -1915,6 +1931,7 @@ MODULE RFLU_ModGeometry
 ! ==============================================================================
 
     ALLOCATE(pGrid%fn(XCOORD:XYZMAG,pGrid%nFacesTot),STAT=errorFlag)
+    !$acc enter data create(pGrid%fn)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%fn')
@@ -1923,6 +1940,7 @@ MODULE RFLU_ModGeometry
     IF ( (global%solverType == SOLV_IMPLICIT_HM) .AND. &
          (pRegion%mixtInput%axiFlag .EQV. .TRUE.) ) THEN
       ALLOCATE(pGrid%fnmus(pGrid%nFacesTot),STAT=errorFlag)
+      !$acc enter data create(pGrid%fnmus)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%fnmus')
@@ -1930,6 +1948,7 @@ MODULE RFLU_ModGeometry
     END IF ! global%solverType
 
     ALLOCATE(pGrid%fc(XCOORD:ZCOORD,pGrid%nFacesTot),STAT=errorFlag)
+    !$acc enter data create(pGrid%fc)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%fc')
@@ -2044,6 +2063,9 @@ MODULE RFLU_ModGeometry
     END IF ! global%verbLevel
 
     CALL DeregisterFunction(global)  
+
+    !$acc exit data detach(pGrid)
+    !$acc exit data detach(pRegion)
 
   END SUBROUTINE RFLU_CreateGeometry
 

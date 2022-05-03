@@ -83,9 +83,10 @@ ifeq ($(findstring login1,$(MACHINE)),login1)
       CMFLAGS=-g
       LDFLAGS=-v -g -lgfortran
     else
-      CMFLAGS=-O2 -g -acc=gpu -gpu=managed -Minfo=acc 
-      LDFLAGS=-O2 -g -lgfortran 
+      CMFLAGS=-O2 
+      LDFLAGS=-O2 -lgfortran 
     endif
+    CMFLAGS+=-g -acc=gpu -Minfo=acc 
 
     ifdef PROF
       CMFLAGS+=-pg
@@ -522,8 +523,8 @@ endif
 %.o: %.C
 	$(CXX) $(CXXOPT) -I$(FLUIDHOME)/include $(INCTEC) $(FORTFLAGS) -c $< -o $@
 
-#.SECONDARY: %.f90
-#.PRECIOUS: %.f90
+.SECONDARY: %.f90
+.PRECIOUS: %.f90
 
 ### Default action #############################################################
 all:

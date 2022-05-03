@@ -3436,7 +3436,7 @@ END IF
 IF ( global%casename .EQ. "cyldet" .OR. &
      global%casename .EQ. "shktb"  .OR. &
      global%casename .EQ. "cylds"  .OR. &
-!     global%casename .EQ. "st_sod1"  .OR. &
+     global%casename .EQ. "st_sod1"  .OR. &
      global%casename .EQ. "hass" ) THEN
 
   IF (global%moduleType .EQ. MODULE_TYPE_SOLVER)THEN

@@ -2004,12 +2004,15 @@ MODULE RFLU_ModStencilsCells
 ! ******************************************************************************
 
     pGrid => pRegion%grid
+    !$acc enter data attach(pGrid)
+    !$acc enter data attach(pRegion)
 
 ! ******************************************************************************
 !   Allocate memory and initialize
 ! ******************************************************************************
 
     ALLOCATE(pGrid%c2cs(pGrid%nCellsTot),STAT=errorFlag)
+    !$acc enter data create(pGrid%c2cs)
     global%error = errorFlag
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%c2cs')
@@ -2031,6 +2034,9 @@ MODULE RFLU_ModStencilsCells
     END IF ! global%verbLevel  
 
     CALL DeregisterFunction(global)  
+
+    !$acc exit data detach(pGrid)
+    !$acc exit data detach(pRegion)
 
   END SUBROUTINE RFLU_CreateC2CStencil  
   
