@@ -15,3 +15,7 @@ rflupart
 rflupick
 rflupost
 
+# Preprocessed files
+build_std/*f90
+build_lib/*f90
+build_util/*/*f90
