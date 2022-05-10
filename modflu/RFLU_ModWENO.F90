@@ -1261,7 +1261,7 @@ MODULE RFLU_ModWENO
 ! ==============================================================================
     ALLOCATE(gradENO(XCOORD:YCOORD,iBegGrad:iEndGrad,pGrid%nCellsTot), &
              STAT=errorFlag)
-              !$acc enter data create(gradENO)
+              !$acc data create(gradENO)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'gradENO')
@@ -1366,7 +1366,7 @@ MODULE RFLU_ModWENO
     END IF ! global%error
       
     DEALLOCATE(gradENO,STAT=errorFlag)
-              !$acc exit data delete(gradENO)
+              !$acc end data 
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'gradENO')
