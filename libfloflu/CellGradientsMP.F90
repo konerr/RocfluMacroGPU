@@ -188,12 +188,12 @@ SUBROUTINE CellGradientsMP(region)
 !   Compute gradients
 ! ------------------------------------------------------------------------------
                                                                
-    !$acc update device(pRegion%mixt%cv)
+    !$acc update device(pRegion%mixt%cv) ! cpu to gpu
     CALL RFLU_ComputeGradCellsWrapper(pRegion,CV_MIXT_DENS,CV_MIXT_PRES, &
                                       GRC_MIXT_DENS,GRC_MIXT_PRES, &
                                       varInfoMixt,pRegion%mixt%cv, &
                                       pRegion%mixt%gradCell)
-    !$acc update self(pRegion%mixt%gradCell)
+    !acc update self(pRegion%mixt%gradCell) ! gpu to cpu
                                       
 ! ------------------------------------------------------------------------------ 
 !   Modify gradients
@@ -211,6 +211,7 @@ SUBROUTINE CellGradientsMP(region)
       CASE ( RECONST_WENO_XYZ ) 
         CALL RFLU_WENOGradCellsXYZWrapper(pRegion,GRC_MIXT_DENS,GRC_MIXT_PRES, &
                                           pRegion%mixt%gradCell)
+        !$acc update self(pRegion%mixt%gradCell) ! gpu to cpu
         CALL RFLU_LimitGradCellsSimple(pRegion,CV_MIXT_DENS,CV_MIXT_PRES, &
                                       GRC_MIXT_DENS,GRC_MIXT_PRES, & 
                                       pRegion%mixt%cv,pRegion%mixt%cvInfo, &

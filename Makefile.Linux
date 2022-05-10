@@ -98,7 +98,9 @@ ifeq ($(findstring login1,$(MACHINE)),login1)
       LIBSYS+= -L$(ROCPROF)/lib -lRocprof
     endif
 
+    #TECHOME= ../../libtecplot/tecio
     LIBMET= -lmetis
+    #LIBTEC=$(TECHOME)/lib/tecio64.a
     FPPFLAGS+=-DNO_TECPLOT -Uvector
   endif
   ifeq ($(findstring gcc,$(COMPILER)),gcc)

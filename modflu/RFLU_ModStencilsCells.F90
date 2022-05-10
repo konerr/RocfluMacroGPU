@@ -808,6 +808,8 @@ MODULE RFLU_ModStencilsCells
 ! ******************************************************************************
 
     pGrid => pRegion%grid
+    !$acc enter data attach(pRegion)
+    !$acc enter data attach(pGrid)
 
 ! ******************************************************************************
 !   Set variables
@@ -1001,6 +1003,7 @@ MODULE RFLU_ModStencilsCells
 
       ALLOCATE(pGrid%c2cs(icg)%cellMembs(pGrid%c2cs(icg)%nCellMembs), & 
                STAT=errorFlag)
+      !$acc enter data create(pGrid%c2cs(icg)%cellMembs)
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%c2cs%cellMembs')
@@ -1009,6 +1012,7 @@ MODULE RFLU_ModStencilsCells
       DO isl = 1,pGrid%c2cs(icg)%nCellMembs
         pGrid%c2cs(icg)%cellMembs(isl) = c2cs(isl)
       END DO ! isl
+      !$acc update device(pGrid%c2cs(icg)%cellMembs)
 
       ALLOCATE(pGrid%c2cs(icg)%layerInfo(X2CS_LAYER_BEG:X2CS_LAYER_END, &
                pGrid%c2cs(icg)%nLayers),STAT=errorFlag)
@@ -1171,6 +1175,8 @@ MODULE RFLU_ModStencilsCells
 !   End
 ! ******************************************************************************
 
+    !$acc exit data detach(pGrid)
+    !$acc exit data detach(pRegion)
     IF ( (global%myProcid == MASTERPROC) .AND. &
          (global%verbLevel > VERBOSE_NONE) .AND. & 
          (icgEnd > icgBeg) ) THEN
