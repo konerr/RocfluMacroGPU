@@ -1223,13 +1223,11 @@ MODULE RFLU_ModWENO
 
     INTEGER :: errorFlag,icg,icg2,iGrad,isl,nCellMembs
     INTEGER, DIMENSION(:), ALLOCATABLE :: icg_ary    
-    !$acc declare device_resident(icg_ary)
     REAL(RFREAL) :: gradLocalX,gradLocalY,nextX,nextX2,nextY,nextY2, &
                     smooIndSumX,smooIndX,smooIndSumY,smooIndY,termX,termY
     REAL(RFREAL), DIMENSION(XCOORD:YCOORD) :: gradLocal,smooIndSum
     REAL(RFREAL), DIMENSION(:,:), ALLOCATABLE :: smooInd  
     REAL(RFREAL), DIMENSION(:,:,:), ALLOCATABLE :: gradENO
-    !$acc declare device_resident(gradENO)
     TYPE(t_global), POINTER :: global
     TYPE(t_grid), POINTER :: pGrid
 
@@ -1263,7 +1261,7 @@ MODULE RFLU_ModWENO
 ! ==============================================================================
     ALLOCATE(gradENO(XCOORD:YCOORD,iBegGrad:iEndGrad,pGrid%nCellsTot), &
              STAT=errorFlag)
-              !acc enter data create(gradENO)
+              !$acc enter data create(gradENO)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'gradENO')
@@ -1280,7 +1278,7 @@ MODULE RFLU_ModWENO
 !   Loop over cells 
 ! ==============================================================================
 
-    !$acc parallel loop
+    !$acc parallel loop private(icg_ary)
     DO icg = 1,pGrid%nCellsTot
       nCellMembs = pGrid%c2cs(icg)%nCellMembs
       
@@ -1332,18 +1330,18 @@ MODULE RFLU_ModWENO
         gradENO(XCOORD,iGrad,icg) = gradLocalX/smooIndSumX
         gradENO(YCOORD,iGrad,icg) = gradLocalY/smooIndSumY
 
-        grad(XCOORD,iGrad,icg) = gradENO(XCOORD,iGrad,icg)
-        grad(YCOORD,iGrad,icg) = gradENO(YCOORD,iGrad,icg)           
+!        grad(XCOORD,iGrad,icg) = gradENO(XCOORD,iGrad,icg)
+!        grad(YCOORD,iGrad,icg) = gradENO(YCOORD,iGrad,icg)           
       END DO ! iGrad                                                       
     END DO ! icg
 
-    !acc parallel loop
-!    DO icg = 1,pGrid%nCellsTot
-!      DO iGrad = iBegGrad,iEndGrad
-!        grad(XCOORD,iGrad,icg) = gradENO(XCOORD,iGrad,icg)
-!        grad(YCOORD,iGrad,icg) = gradENO(YCOORD,iGrad,icg)           
-!      END DO ! iGrad  
-!    END DO ! icg
+    !$acc parallel loop
+    DO icg = 1,pGrid%nCellsTot
+      DO iGrad = iBegGrad,iEndGrad
+        grad(XCOORD,iGrad,icg) = gradENO(XCOORD,iGrad,icg)
+        grad(YCOORD,iGrad,icg) = gradENO(YCOORD,iGrad,icg)           
+      END DO ! iGrad  
+    END DO ! icg
 
 ! DEBUG
 !    DO iGrad = iBegGrad,iEndGrad
@@ -1368,7 +1366,7 @@ MODULE RFLU_ModWENO
     END IF ! global%error
       
     DEALLOCATE(gradENO,STAT=errorFlag)
-              !acc exit data delete(gradENO)
+              !$acc exit data delete(gradENO)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'gradENO')
