@@ -1783,9 +1783,11 @@ SUBROUTINE RFLU_ExtractFlowDataSod(pRegion)
 ! Locals
 ! ==============================================================================
 
-  CHARACTER(CHRLEN) :: iFileName1
+CHARACTER(CHRLEN) :: iFileName1,iFileName2 !Fred - Reading .std file name
   INTEGER :: errorFlag,icg,icgBeg,icgEnd,nCellsX
+  INTEGER :: errFlag
   REAL(RFREAL) :: a,cp,mw,p,r,T,u,v
+  REAL(RFREAL) :: xcomp,acomp,pcomp,rcomp,Tcomp,ucomp,eps !Fred - comparison variables from .std file
   TYPE(t_grid), POINTER :: pGrid
 
 ! ******************************************************************************
@@ -1812,7 +1814,14 @@ SUBROUTINE RFLU_ExtractFlowDataSod(pRegion)
 ! Open file for data 
 ! ******************************************************************************
 
-  iFileName1 = 'sodst.dat'
+  !iFileName1 = 'sodst.dat'
+  WRITE(iFileName1,'(A,1PE11.5,A)') TRIM(global%outDir)// &
+                              TRIM(global%casename)// &
+                              '_',global%currentTime,'.dat'
+
+  WRITE(iFileName2,'(A,1PE11.5,A)') TRIM(global%outDir)// &
+                              TRIM(global%casename)// &
+                              '_',global%currentTime,'.dat.std' !.std file name                   
 
   OPEN(IF_EXTR_DATA1,FILE=iFileName1,FORM='FORMATTED',STATUS='UNKNOWN', &
        IOSTAT=errorFlag)
@@ -1820,6 +1829,14 @@ SUBROUTINE RFLU_ExtractFlowDataSod(pRegion)
   IF ( global%error /= ERR_NONE ) THEN 
     CALL ErrorStop(global,ERR_FILE_OPEN,__LINE__,'File: '//TRIM(iFileName1))
   END IF ! global%error  
+
+  OPEN(IF_EXTR_DATA2,FILE=iFileName2,FORM='FORMATTED',STATUS='UNKNOWN', &
+       IOSTAT=errorFlag)
+  global%error = errorFlag
+  IF ( global%error /= ERR_NONE ) THEN
+    CALL ErrorStop(global,ERR_FILE_OPEN,__LINE__,'File: '//TRIM(iFileName2)) !.std
+  END IF ! global%error
+
 
   IF ( global%verbLevel > VERBOSE_NONE ) THEN
     WRITE(STDOUT,'(A,3X,A)') SOLVER_NAME,'Writing data to file: '// & 
@@ -1841,6 +1858,8 @@ SUBROUTINE RFLU_ExtractFlowDataSod(pRegion)
 
   SELECT CASE ( pRegion%mixtInput%gasModel )
     CASE ( GAS_MODEL_TCPERF ) 
+      
+      errFlag = 0 !.std file error tracking       
       DO icg = icgBeg,icgEnd
         r = pRegion%mixt%cv(CV_MIXT_DENS,icg)
         u = pRegion%mixt%cv(CV_MIXT_XMOM,icg)/r
@@ -1848,6 +1867,38 @@ SUBROUTINE RFLU_ExtractFlowDataSod(pRegion)
         T = pRegion%mixt%dv(DV_MIXT_TEMP,icg)
         a = pRegion%mixt%dv(DV_MIXT_SOUN,icg)
 
+        !.std comparison code start
+        
+        READ(IF_EXTR_DATA2,'(6(1X,E23.16))') xcomp,rcomp,ucomp,pcomp,Tcomp,acomp
+
+        eps = 1.0E-5_RFREAL !Relative error check tolerance
+
+        IF (ABS(xcomp-pGrid%cofg(XCOORD,icg))/xcomp .GE. eps) THEN
+                errFlag = 1
+                WRITE(*,*) 'X-coordinate error at cell coordinate: ',pGrid%cofg(XCOORD,icg)
+        END IF
+        IF (ABS(rcomp-r)/r .GE. eps) THEN 
+                errFlag = 2
+                WRITE(*,*) 'Density error at cell coordinate: ',pGrid%cofg(XCOORD,icg)
+        END IF
+        IF (ABS(ucomp-u)/u .GE. eps) THEN
+                errFlag = 3
+                WRITE(*,*) 'Velocity error at cell coordinate: ',pGrid%cofg(XCOORD,icg)
+        END IF
+        IF (ABS(pcomp-p)/p .GE. eps) THEN
+                errFlag = 4
+                WRITE(*,*) 'Pressure error at cell coordinate: ',pGrid%cofg(XCOORD,icg)
+        END IF
+        IF (ABS(Tcomp-T)/T .GE. eps) THEN
+                errFlag = 5
+                 WRITE(*,*) 'Temperature error at cell coordinate: ',pGrid%cofg(XCOORD,icg)
+        END IF
+        IF (ABS(acomp-a)/a .GE. eps) THEN
+                errFlag = 6
+                WRITE(*,*) 'SoS error at cell coordinate: ',pGrid%cofg(XCOORD,icg)
+        END IF !error check
+
+        !.std comparison code end
         WRITE(IF_EXTR_DATA1,'(6(1X,E23.16))') pGrid%cofg(XCOORD,icg), & 
                                               r,u,p,T,a
       END DO ! icg    
@@ -1878,9 +1929,20 @@ SUBROUTINE RFLU_ExtractFlowDataSod(pRegion)
     CALL ErrorStop(global,ERR_FILE_CLOSE,__LINE__,'File: '//TRIM(iFileName1))
   END IF ! global%error  
 
+  CLOSE(IF_EXTR_DATA2,IOSTAT=errorFlag) !Close .std file
+  global%error = errorFlag
+  IF ( global%error /= ERR_NONE ) THEN
+    CALL ErrorStop(global,ERR_FILE_CLOSE,__LINE__,'File: '//TRIM(iFileName2))
+  END IF ! global%error
+
+
 ! ******************************************************************************
 ! End
 ! ******************************************************************************
+
+  IF (errFlag /= 0) THEN
+    WRITE(STDOUT,'(A,1X,A)') SOLVER_NAME,'Values from solution files outside of tolerance for .std files!' 
+  END IF
 
   IF ( global%verbLevel > VERBOSE_NONE ) THEN
     WRITE(STDOUT,'(A,1X,A)') SOLVER_NAME,'Extracting data for shocktube done.'
