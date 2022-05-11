@@ -365,8 +365,8 @@ MODULE RFLU_ModGeometry
     END IF ! global%verbLevel
 
     pGrid => pRegion%grid
-    !$acc enter data attach(pRegion)
-    !$acc enter data attach(pGrid)
+    !!$acc enter data attach(pRegion)
+    !!$acc enter data attach(pGrid)
 
     IF ( PRESENT(sypeFaceFlag) .EQV. .FALSE. ) THEN 
       ignoreSypeFaces = .TRUE.
@@ -408,7 +408,7 @@ MODULE RFLU_ModGeometry
 
     DO iPatch = 1,pGrid%nPatches
       pPatch => pRegion%patches(iPatch)  
-
+      !!$acc enter data attach(pPatch)  
       pPatch%pc(XCOORD) = 0.0_RFREAL
       pPatch%pc(YCOORD) = 0.0_RFREAL
       pPatch%pc(ZCOORD) = 0.0_RFREAL
@@ -439,7 +439,6 @@ MODULE RFLU_ModGeometry
         END DO ! ibv
       END IF ! pRegion%mixtInput                
     END DO ! iPatch                  
-
 ! ******************************************************************************
 !   Create and build approximate cell centroids (for later use)
 ! ******************************************************************************
@@ -1251,15 +1250,16 @@ MODULE RFLU_ModGeometry
     END IF ! global%verbLevel
 
     CALL DeregisterFunction(global)
-
+    !$acc update device(pPatch%fc)    
     !$acc update device(pGrid%vol)
     !$acc update device(pGrid%volus)
     !$acc update device(pGrid%cofg)
     !$acc update device(pGrid%fn)
     !$acc update device(pGrid%fnmus)
     !$acc update device(pGrid%fc)
-    !$acc exit data detach(pGrid)
-    !$acc exit data detach(pRegion)
+    !!$acc exit data detach(pPatch)
+    !!$acc exit data detach(pGrid)
+    !!$acc exit data detach(pRegion)
 
   END SUBROUTINE RFLU_BuildGeometry
 
@@ -1983,7 +1983,7 @@ MODULE RFLU_ModGeometry
 
     DO iPatch = 1,pGrid%nPatches
       pPatch => pRegion%patches(iPatch)  
-
+      !!$acc enter data attach(pPatch)  
       IF ( global%myProcid == MASTERPROC .AND. &
            global%verbLevel > VERBOSE_LOW ) THEN
         WRITE(STDOUT,'(A,5X,A,1X,I3)') SOLVER_NAME,'Patch:',iPatch
@@ -2009,6 +2009,7 @@ MODULE RFLU_ModGeometry
       END IF ! global%solverType
 
       ALLOCATE(pPatch%fc(XCOORD:ZCOORD,pPatch%nBFacesTot),STAT=errorFlag)
+      !!$acc enter data create(pPatch%fc)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'region%patches%fc')
@@ -2050,7 +2051,8 @@ MODULE RFLU_ModGeometry
         END DO ! ibv
       ELSE
         NULLIFY(pPatch%bvn)
-      END IF ! pRegion%mixtInput%moveGrid        
+      END IF ! pRegion%mixtInput%moveGrid  
+      !!$acc exit data detach(pPatch)        
     END DO ! iPatch
 
 ! ******************************************************************************
@@ -2063,9 +2065,8 @@ MODULE RFLU_ModGeometry
     END IF ! global%verbLevel
 
     CALL DeregisterFunction(global)  
-
-    !$acc exit data detach(pGrid)
-    !$acc exit data detach(pRegion)
+    !!$acc exit data detach(pGrid)
+    !!$acc exit data detach(pRegion)
 
   END SUBROUTINE RFLU_CreateGeometry
 

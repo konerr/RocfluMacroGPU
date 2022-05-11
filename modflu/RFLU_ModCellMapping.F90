@@ -508,12 +508,15 @@ MODULE RFLU_ModCellMapping
 ! ******************************************************************************  
 
     pGrid => pRegion%grid
+  !!$acc enter data attach(pRegion)
+  !!$acc enter data attach(pGrid)
 
 ! ******************************************************************************  
 !   Allocate memory
 ! ******************************************************************************  
 
-    ALLOCATE(pGrid%cellGlob2Loc(2,pGrid%nCellsMax),STAT=errorFlag)      
+    ALLOCATE(pGrid%cellGlob2Loc(2,pGrid%nCellsMax),STAT=errorFlag) 
+    !!$acc enter data create(pGrid%cellGlob2Loc)        
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%cellGlob2Loc')
@@ -521,6 +524,7 @@ MODULE RFLU_ModCellMapping
 
     IF ( pGrid%nTetsMax > 0 ) THEN             
       ALLOCATE(pGrid%tet2CellGlob(pGrid%nTetsMax),STAT=errorFlag)
+      !!$acc enter data create(pGrid%tet2CellGlob)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%tet2CellGlob')
@@ -529,6 +533,7 @@ MODULE RFLU_ModCellMapping
 
     IF ( pGrid%nHexsMax > 0 ) THEN       
       ALLOCATE(pGrid%hex2CellGlob(pGrid%nHexsMax),STAT=errorFlag)
+      !!$acc enter data create(pGrid%hex2CellGlob)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%hex2CellGlob')
@@ -537,6 +542,7 @@ MODULE RFLU_ModCellMapping
 
     IF ( pGrid%nPrisMax > 0 ) THEN       
       ALLOCATE(pGrid%pri2CellGlob(pGrid%nPrisMax),STAT=errorFlag)
+      !!$acc enter data create(pGrid%pri2CellGlob)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%pri2CellGlob')
@@ -545,11 +551,14 @@ MODULE RFLU_ModCellMapping
 
     IF ( pGrid%nPyrsMax > 0 ) THEN
       ALLOCATE(pGrid%pyr2CellGlob(pGrid%nPyrsMax),STAT=errorFlag)
+      !!$acc enter data create(pGrid%pyr2CellGlob)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%pyr2CellGlob')
       END IF ! global%error
     END IF ! pGrid%nPyrsMax
+  !!$acc exit data detach(pGrid)
+  !!$acc exit data detach(pRegion)
 
 ! ******************************************************************************  
 !   End

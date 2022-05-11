@@ -1842,7 +1842,10 @@ MODULE RFLU_ModFaceList
 ! ******************************************************************************
 
     pGrid => pRegion%grid
-          
+    !!$acc enter data attach(pRegion)
+    !!$acc enter data attach(pGrid)     
+
+
 ! ******************************************************************************
 !   Allocate memory
 ! ******************************************************************************
@@ -1857,6 +1860,7 @@ MODULE RFLU_ModFaceList
 
     IF ( pGrid%nHexsTot > 0 ) THEN 
       ALLOCATE(pGrid%hex2f(2,6,pGrid%nHexsTot),STAT=errorFlag)
+      !!$acc enter data create(pGrid%hex2f)         
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%hex2f')
@@ -1878,7 +1882,9 @@ MODULE RFLU_ModFaceList
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%pyr2f')
       END IF ! global%error
     END IF ! pGrid%nPyrsTot          
-          
+   !!$acc exit data detach(pGrid)
+   !!$acc exit data detach(pRegion)
+      
 ! ******************************************************************************
 !   End
 ! ******************************************************************************
@@ -2801,7 +2807,9 @@ MODULE RFLU_ModFaceList
     CALL RegisterFunction(global,'RFLU_InsertIntoCell2FaceList',__FILE__)
     
     pGrid => pRegion%grid
-    
+    !!$acc enter data attach(pRegion)
+    !!$acc enter data attach(pGrid)
+
 ! ******************************************************************************
 !   Get cell type and local cell index
 ! ******************************************************************************
@@ -2926,6 +2934,7 @@ MODULE RFLU_ModFaceList
             END IF ! ifl            
           END IF ! term          
         END DO hexFaceLoop            
+ !!$acc update device(pGrid%hex2f)
 
 ! ==============================================================================
 !     Prisms
@@ -3024,6 +3033,8 @@ MODULE RFLU_ModFaceList
       CASE DEFAULT
         CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__)                      
     END SELECT ! ict     
+  !!$acc exit data detach(pGrid)
+  !!$acc exit data detach(pRegion)
 
 ! ******************************************************************************
 !   End
