@@ -1761,6 +1761,7 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
 
 !pRegion
 !$acc update device(pRegion%mixt%cv)
+!$acc update device(pRegion%mixt%cvInfo)
 !$acc update device(pRegion%mixt%dv)
 !$acc update device(pRegion%mixt%mfMixt)
 !$acc update device(pRegion%mixt%rhs)

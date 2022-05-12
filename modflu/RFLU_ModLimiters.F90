@@ -837,15 +837,15 @@ SUBROUTINE RFLU_LimitGradCellsSimple(pRegion,iBegVar,iEndVar,iBegGrad, &
 ! ******************************************************************************
 
   pGrid => pRegion%grid
-!throw on gpu: pREgion,pGrid
-  !!$acc enter data attach(pRegion)
-  !!$acc enter data attach(pGrid)     
-  !!$acc enter data attach(var,grad) 
-  !!$acc enter data attach(varInfo)       
+  !$acc enter data attach(pRegion)
+  !$acc enter data attach(pGrid)     
+  !$acc enter data attach(var,grad) 
+  !$acc enter data attach(varInfo)       
+
 ! ******************************************************************************
 ! Loop over cells
 ! ******************************************************************************
-  !!$acc parallel loop
+  !$acc parallel loop private(pPatch)
   DO icg = 1,pGrid%nCellsTot
     ict = pGrid%cellGlob2Loc(1,icg) ! cell type
     icl = pGrid%cellGlob2Loc(2,icg) ! local cell index
@@ -864,7 +864,8 @@ SUBROUTINE RFLU_LimitGradCellsSimple(pRegion,iBegVar,iEndVar,iBegGrad, &
         nFacesPerCell = 5
         pC2f => pGrid%pyr2f                
       CASE DEFAULT  
-        CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__)
+!RAHUL: GPU cannot handle WRITE statements PRINT is fine
+!        CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__)
     END SELECT ! ict
 
    !!$acc enter data attach(pC2f)
@@ -893,7 +894,6 @@ SUBROUTINE RFLU_LimitGradCellsSimple(pRegion,iBegVar,iEndVar,iBegGrad, &
             dz = pGrid%fc(ZCOORD,ifg) - zc                         
           ELSE ! Boundary face
             pPatch => pRegion%patches(iPatch)
-             !!$acc enter data attach(pPatch)   
             dx = pPatch%fc(XCOORD,ifg) - xc
             dy = pPatch%fc(YCOORD,ifg) - yc
             dz = pPatch%fc(ZCOORD,ifg) - zc                             
@@ -917,12 +917,12 @@ SUBROUTINE RFLU_LimitGradCellsSimple(pRegion,iBegVar,iEndVar,iBegGrad, &
       iGrad = iGrad + 1        
     END DO ! iVar
   END DO ! icg
-  !!$acc exit data detach(pC2f)
-  !!$acc exit data detach(var,grad) 
-  !!$acc exit data detach(varInfo)
-  !!$acc exit data detach(pPatch)        
-  !!$acc exit data detach(pGrid)
-  !!$acc exit data detach(pRegion)
+
+  !$acc exit data detach(pC2f)
+  !$acc exit data detach(var,grad) 
+  !$acc exit data detach(varInfo)
+  !$acc exit data detach(pGrid)
+  !$acc exit data detach(pRegion)
 ! ******************************************************************************
 ! End
 ! ******************************************************************************

@@ -2592,7 +2592,7 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
 !$acc enter data attach(pSd)
 
 !GPU update the fact pRhs gets zeroed out
-!$acc update device(pRhs,pSd)
+!$acc update device(pRhs,pSd,pGc,pCv,pDv)
 
 
 !$acc parallel loop private(flx, vf)
@@ -2769,6 +2769,7 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
     pSd(SD_ZMOM,c2*indSd) = pSd(SD_ZMOM,c2*indSd) - vf(3)*flx(1)   
   END DO ! ifg
 
+!!$acc compare(pRhs)
 !$acc update self(pSd)
 !$acc update self(pRhs)
 !$acc update self(pMf)

@@ -2935,7 +2935,6 @@ MODULE RFLU_ModFaceList
             END IF ! ifl            
           END IF ! term          
         END DO hexFaceLoop            
- !!$acc update device(pGrid%hex2f)
 
 ! ==============================================================================
 !     Prisms
