@@ -1499,6 +1499,7 @@ MODULE RFLU_ModFaceList
 ! ==============================================================================
 
     ALLOCATE(pGrid%f2c(2,pGrid%nFacesTot),STAT=errorFlag) ! NOTE nFacesInt
+    !$acc enter data create(pGrid%f2c)
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%f2c')
     END IF ! global%error
@@ -1860,7 +1861,7 @@ MODULE RFLU_ModFaceList
 
     IF ( pGrid%nHexsTot > 0 ) THEN 
       ALLOCATE(pGrid%hex2f(2,6,pGrid%nHexsTot),STAT=errorFlag)
-      !!$acc enter data create(pGrid%hex2f)         
+      !$acc enter data create(pGrid%hex2f)         
       global%error = errorFlag
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%hex2f')
@@ -2018,7 +2019,7 @@ MODULE RFLU_ModFaceList
 !   Allocate memory for interior faces
 ! ******************************************************************************
              
-    ALLOCATE(pGrid%f2c(4,pGrid%nFacesEst),STAT=errorFlag) 
+    ALLOCATE(pGrid%f2c(4,pGrid%nFacesEst),STAT=errorFlag)
     global%error = errorFlag   
     IF ( global%error /= ERR_NONE ) THEN 
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%f2c')

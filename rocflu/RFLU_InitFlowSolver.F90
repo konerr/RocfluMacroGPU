@@ -1756,6 +1756,32 @@ SUBROUTINE RFLU_InitFlowSolver(casename,verbLevel,global,levels)
   END IF ! global%solverType
 #endif
   
+!************GPU
+!Here we are updating all geom arrays to the gpu
+
+!pRegion
+!$acc update device(pRegion%mixt%cv)
+!$acc update device(pRegion%mixt%dv)
+!$acc update device(pRegion%mixt%mfMixt)
+!$acc update device(pRegion%mixt%rhs)
+!$acc update device(pRegion%mixt%sd)
+
+!pGrid
+!$acc update device(pGrid%hex2f)
+!$acc update device(pGrid%vol)
+!$acc update device(pGrid%volus)
+!$acc update device(pGrid%cofg)
+!$acc update device(pGrid%fn)
+!$acc update device(pGrid%fnmus)
+!$acc update device(pGrid%fc)
+!$acc update device(pGrid%f2c)
+!$acc update device(pGrid%gs)
+!!$acc update device(pGrid%c2cs(icg)%cellMembs) !for now kept in loop
+!!$acc update device(pGrid%c2cs(icg)%xyzMoms)   !for now kept in loop
+
+!pPatch
+!$acc update device(pPatch%fc)
+
 
 ! ******************************************************************************
 ! End

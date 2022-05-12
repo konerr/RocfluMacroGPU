@@ -86,7 +86,7 @@ ifeq ($(findstring login1,$(MACHINE)),login1)
       CMFLAGS=-O2 
       LDFLAGS=-O2 -lgfortran 
     endif
-    CMFLAGS+=-g -acc=gpu -Minfo=acc 
+    CMFLAGS+=-g -acc=gpu -Minfo=acc -gpu=autocompare
 
     ifdef PROF
       CMFLAGS+=-pg

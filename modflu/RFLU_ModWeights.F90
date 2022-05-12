@@ -1112,8 +1112,10 @@ MODULE RFLU_ModWeights
               global%error = errorFlag
               IF ( global%error /= ERR_NONE ) THEN 
                 CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'dr')
-              END IF ! global%error        
-            END DO ! icg          
+              END IF ! global%error 
+             !$acc update device(pGrid%c2cs(icg)%xyzMoms) async          
+            END DO ! icg    
+                !$acc wait      
           CASE ( 3 )           
             DO icg = 1,pGrid%nCellsTot
               nMembs = pGrid%c2cs(icg)%nCellMembs            
@@ -1139,8 +1141,12 @@ MODULE RFLU_ModWeights
               global%error = errorFlag
               IF ( global%error /= ERR_NONE ) THEN 
                 CALL ErrorStop(global,ERR_DEALLOCATE,__LINE__,'dr')
-              END IF ! global%error        
+              END IF ! global%error 
+
+               !$acc update device(pGrid%c2cs(icg)%xyzMoms) async
+
             END DO ! icg
+            !$acc wait
           CASE DEFAULT
             CALL ErrorStop(global,ERR_REACHED_DEFAULT,__LINE__)
         END SELECT ! pRegion%mixtInput%dimens
@@ -1165,7 +1171,7 @@ MODULE RFLU_ModWeights
 
     CALL DeregisterFunction(global)  
 
-    !$acc update device(pGrid%c2cs(icg)%xyzMoms)
+    !!$acc update device(pGrid%c2cs(icg)%xyzMoms)
     !$acc exit data detach(pGrid)
     !$acc exit data detach(pRegion)
 

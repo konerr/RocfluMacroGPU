@@ -67,11 +67,10 @@
 !******************************************************************************
 
 FUNCTION MixtPerf_Ho_CpTUVW(Cp,T,U,V,W)
-
   USE ModDataTypes
 
   IMPLICIT NONE
-  
+  !$acc routine(MixtPerf_Ho_CpTUVW) seq
   REAL(RFREAL), INTENT(IN) :: Cp,T,U,V,W
   REAL(RFREAL) :: MixtPerf_Ho_CpTUVW
    

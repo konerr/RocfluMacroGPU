@@ -118,7 +118,7 @@ FUNCTION MixtPerf_C_GRT(G,R,T)
   USE ModDataTypes
 
   IMPLICIT NONE
-  
+!$acc routine(MixtPerf_C_GRT) seq  
   REAL(RFREAL), INTENT(IN) :: G,R,T
   REAL(RFREAL) :: MixtPerf_C_GRT
    

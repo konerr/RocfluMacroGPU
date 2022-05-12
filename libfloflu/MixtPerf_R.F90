@@ -67,11 +67,10 @@
 !******************************************************************************
 
 FUNCTION MixtPerf_R_CpG(Cp,G)
-
   USE ModDataTypes
   
   IMPLICIT NONE
-  
+  !$acc routine(MixtPerf_R_CpG) seq
   REAL(RFREAL), INTENT(IN) :: Cp,G
   REAL(RFREAL) :: MixtPerf_R_CpG
   

@@ -266,6 +266,7 @@ SUBROUTINE RFLU_AllocateMemoryGSpeeds(pRegion)
 
 #ifndef GENX
     ALLOCATE(pGrid%gs(pGrid%nFaces),STAT=errorFlag)
+    !$acc enter data create(pGrid%gs)
     global%error = errorFlag
     IF ( global%error /= ERR_NONE ) THEN
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%gs')
@@ -333,6 +334,7 @@ SUBROUTINE RFLU_AllocateMemoryGSpeeds(pRegion)
 ! ------------------------------------------------------------------------------
 
     ALLOCATE(pGrid%gs(0:1),STAT=errorFlag)
+    !$acc enter data create(pGrid%gs)
     global%error = errorFlag
     IF ( global%error /= ERR_NONE ) THEN
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pGrid%gs')
@@ -627,6 +629,7 @@ SUBROUTINE RFLU_AllocateMemorySolDv(pRegion)
   ELSE
     IF ( pMixtInput%nDv /= 0 ) THEN
       ALLOCATE(pRegion%mixt%dv(pMixtInput%nDv,pGrid%nCellsTot),STAT=errorFlag)
+      !$acc enter data create(pRegion%mixt%dv)
       global%error = errorFlag
       IF (global%error /= ERR_NONE) THEN
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%dv')
@@ -954,6 +957,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
 
   IF ( global%solverType /= SOLV_IMPLICIT_HM ) THEN
     ALLOCATE(pRegion%mixt%rhs(pMixtInput%nCv,pGrid%nCellsTot),STAT=errorFlag)
+    !$acc enter data create(pRegion%mixt%rhs)
     global%error = errorFlag
     IF ( global%error /= ERR_NONE ) THEN
       CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%rhs')
@@ -1280,6 +1284,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep(pRegion)
 
   ALLOCATE(pRegion%mixt%sd(SD_XMOM:SD_ZMOM,arrayLimLow:arrayLimUpp), &
                            STAT=errorFlag)
+  !$acc enter data create(pRegion%mixt%sd)                 
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%sd')
@@ -1375,6 +1380,7 @@ SUBROUTINE RFLU_AllocateMemoryTStep_C(pRegion)
   END IF ! pMixtInput%indMfMixt
 
   ALLOCATE(pRegion%mixt%mfMixt(arrayLimLow:arrayLimUpp),STAT=errorFlag)
+  !$acc enter data create(pRegion%mixt%mfMixt)
   global%error = errorFlag
   IF ( global%error /= ERR_NONE ) THEN
     CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'pRegion%mixt%mfMixt')

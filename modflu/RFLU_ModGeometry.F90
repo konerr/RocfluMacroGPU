@@ -1250,13 +1250,13 @@ MODULE RFLU_ModGeometry
     END IF ! global%verbLevel
 
     CALL DeregisterFunction(global)
-    !$acc update device(pPatch%fc)    
-    !$acc update device(pGrid%vol)
-    !$acc update device(pGrid%volus)
-    !$acc update device(pGrid%cofg)
-    !$acc update device(pGrid%fn)
-    !$acc update device(pGrid%fnmus)
-    !$acc update device(pGrid%fc)
+    !!$acc update device(pPatch%fc)    
+    !!$acc update device(pGrid%vol)
+    !!$acc update device(pGrid%volus)
+    !!$acc update device(pGrid%cofg)
+    !!$acc update device(pGrid%fn)
+    !!$acc update device(pGrid%fnmus)
+    !!$acc update device(pGrid%fc)
     !!$acc exit data detach(pPatch)
     !!$acc exit data detach(pGrid)
     !!$acc exit data detach(pRegion)
@@ -2009,7 +2009,7 @@ MODULE RFLU_ModGeometry
       END IF ! global%solverType
 
       ALLOCATE(pPatch%fc(XCOORD:ZCOORD,pPatch%nBFacesTot),STAT=errorFlag)
-      !!$acc enter data create(pPatch%fc)
+      !$acc enter data create(pPatch%fc)
       global%error = errorFlag   
       IF ( global%error /= ERR_NONE ) THEN 
         CALL ErrorStop(global,ERR_ALLOCATE,__LINE__,'region%patches%fc')

@@ -111,18 +111,15 @@ FUNCTION MixtPerf_T_CvEoVm2(Cv,Eo,Vm2)
 END FUNCTION MixtPerf_T_CvEoVm2
 
 ! ------------------------------------------------------------------------------
-
 FUNCTION MixtPerf_T_DPR(D,P,R)
-
   USE ModDataTypes
 
   IMPLICIT NONE
-  
+  !$acc routine(MixtPerf_T_DPR) seq
   REAL(RFREAL), INTENT(IN) :: D,P,R
   REAL(RFREAL) :: MixtPerf_T_DPR
    
   MixtPerf_T_DPR = P/(D*R)
-
 END FUNCTION MixtPerf_T_DPR
 
 ! ------------------------------------------------------------------------------

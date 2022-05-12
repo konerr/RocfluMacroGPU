@@ -281,7 +281,7 @@ END SUBROUTINE RFLU_AUSM_ComputeFlux
 
 SUBROUTINE RFLU_AUSM_FluxFunction(nx,ny,nz,nm,fs,rl,ul,vl,wl,pl,Hl,al,rr,ur, &
                                   vr,wr,pr,Hr,ar,flx,vf)
-
+!$acc routine seq
   IMPLICIT NONE
 
 ! ******************************************************************************
@@ -1145,7 +1145,7 @@ SUBROUTINE RFLU_AUSM_ComputeFlux1_MJWL(pRegion)
 ! ==============================================================================
 !   Compute fluxes 
 ! ==============================================================================
-
+    !declace suquential
     CALL RFLU_AUSM_FluxFunction(nx,ny,nz,nm,fs,rl,ul,vl,wl,pl,Hl,al,rr,ur,vr, &
                                 wr,pr,Hr,ar,flx,vf)
 
@@ -2510,7 +2510,10 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
                            RFLU_CentralSecondPatch
 
   IMPLICIT NONE
-  
+  !$acc routine(MixtPerf_T_DPR) seq
+  !$acc routine(MixtPerf_Ho_CpTUVW) seq
+  !$acc routine(MixtPerf_R_CpG) seq
+  !$acc routine(MixtPerf_C_GRT) seq
 ! ******************************************************************************
 ! Definitions and declarations
 ! ******************************************************************************
@@ -2579,6 +2582,20 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
 ! Compute fluxes through interior faces
 ! ******************************************************************************
 
+!$acc enter data attach(pRegion)
+!$acc enter data attach(pGrid)
+!$acc enter data attach(pCv)
+!$acc enter data attach(pDv)
+!$acc enter data attach(pGc)
+!$acc enter data attach(pMf)
+!$acc enter data attach(pRhs)
+!$acc enter data attach(pSd)
+
+!GPU update the fact pRhs gets zeroed out
+!$acc update device(pRhs,pSd)
+
+
+!$acc parallel loop private(flx, vf)
   DO ifg = 1,pGrid%nFaces
     c1 = pGrid%f2c(1,ifg)
     c2 = pGrid%f2c(2,ifg)
@@ -2634,12 +2651,14 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
             + pGc(YCOORD,GRC_MIXT_PRES,c1)*dy &
             + pGc(ZCOORD,GRC_MIXT_PRES,c1)*dz
 
+!MAKE SURE TO PUT THIS CODE BACK
+!TEMP COMMENT OUT TO PLEAZE GPU COMPILER
     ! Subbu - vFracE Correction
-    IF ( global%plagUsed .AND. (pRegion%plag%nPcls > 1) ) THEN
-      tl = MixtPerf_T_DPR( rl/(1.0_RFREAL - pRegion%plag%vFracE(1,c1)), pl,gc)
-    ELSE 
+    !IF ( global%plagUsed .AND. (pRegion%plag%nPcls > 1) ) THEN
+     ! tl = MixtPerf_T_DPR( rl/(1.0_RFREAL - pRegion%plag%vFracE(1,c1)), pl,gc)
+    !ELSE 
       tl = MixtPerf_T_DPR(rl,pl,gc)
-    END IF ! global%plagUsed
+    !END IF ! global%plagUsed
     ! Subbu - vFracE Correction
 
     !tl = MixtPerf_T_DPR(rl,pl,gc)
@@ -2677,13 +2696,15 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
     pr = pr + pGc(XCOORD,GRC_MIXT_PRES,c2)*dx &
             + pGc(YCOORD,GRC_MIXT_PRES,c2)*dy &
             + pGc(ZCOORD,GRC_MIXT_PRES,c2)*dz
-    
+
+!MAKE SURE TO PUT THIS CODE BACK
+!TEMP COMMENT OUT TO PLEAZE GPU COMPILER    
     ! Subbu - vFracE Correction
-    IF ( global%plagUsed .AND. (pRegion%plag%nPcls > 1) ) THEN
-      tr = MixtPerf_T_DPR( rr/(1.0_RFREAL - pRegion%plag%vFracE(1,c2)),pr,gc)
-    ELSE 
+    !IF ( global%plagUsed .AND. (pRegion%plag%nPcls > 1) ) THEN
+    !  tr = MixtPerf_T_DPR( rr/(1.0_RFREAL - pRegion%plag%vFracE(1,c2)),pr,gc)
+    !ELSE
       tr = MixtPerf_T_DPR(rr,pr,gc)
-    END IF ! global%plagUsed
+    !END IF ! global%plagUsed
     ! Subbu - vFracE Correction
 
     !tr = MixtPerf_T_DPR(rr,pr,gc)
@@ -2693,7 +2714,7 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
 ! ==============================================================================
 !   Compute fluxes 
 ! ==============================================================================
-
+    !dec as seq loop
     CALL RFLU_AUSM_FluxFunction(nx,ny,nz,nm,fs,rl,ul,vl,wl,pl,Hl,al,rr,ur,vr, & 
                                 wr,pr,Hr,ar,flx,vf)
 
@@ -2706,31 +2727,61 @@ SUBROUTINE RFLU_AUSM_ComputeFlux2_TCP(pRegion)
 ! ==============================================================================
 !   Accumulate into residual
 ! ==============================================================================
-
+ !add atmoic here for each pRhs update and pSd  
+    !$acc atomic update
     pRhs(CV_MIXT_DENS,c1) = pRhs(CV_MIXT_DENS,c1) + flx(1)
+    !$acc atomic update
     pRhs(CV_MIXT_XMOM,c1) = pRhs(CV_MIXT_XMOM,c1) + flx(2)
+    !$acc atomic update
     pRhs(CV_MIXT_YMOM,c1) = pRhs(CV_MIXT_YMOM,c1) + flx(3)
+    !$acc atomic update
     pRhs(CV_MIXT_ZMOM,c1) = pRhs(CV_MIXT_ZMOM,c1) + flx(4)
+    !$acc atomic update
     pRhs(CV_MIXT_ENER,c1) = pRhs(CV_MIXT_ENER,c1) + flx(5)
 
+    !$acc atomic update
     pRhs(CV_MIXT_DENS,c2) = pRhs(CV_MIXT_DENS,c2) - flx(1)
+    !$acc atomic update
     pRhs(CV_MIXT_XMOM,c2) = pRhs(CV_MIXT_XMOM,c2) - flx(2)
+    !$acc atomic update
     pRhs(CV_MIXT_YMOM,c2) = pRhs(CV_MIXT_YMOM,c2) - flx(3)
+    !$acc atomic update
     pRhs(CV_MIXT_ZMOM,c2) = pRhs(CV_MIXT_ZMOM,c2) - flx(4)
+    !$acc atomic update
     pRhs(CV_MIXT_ENER,c2) = pRhs(CV_MIXT_ENER,c2) - flx(5)
 
 ! ==============================================================================
 !   Accumulate into substantial derivative
 ! ==============================================================================
 
+    !$acc atomic update    
     pSd(SD_XMOM,c1*indSd) = pSd(SD_XMOM,c1*indSd) + vf(1)*flx(1)
+    !$acc atomic update
     pSd(SD_YMOM,c1*indSd) = pSd(SD_YMOM,c1*indSd) + vf(2)*flx(1)
+    !$acc atomic update
     pSd(SD_ZMOM,c1*indSd) = pSd(SD_ZMOM,c1*indSd) + vf(3)*flx(1)
     
+    !$acc atomic update
     pSd(SD_XMOM,c2*indSd) = pSd(SD_XMOM,c2*indSd) - vf(1)*flx(1)
+    !$acc atomic update
     pSd(SD_YMOM,c2*indSd) = pSd(SD_YMOM,c2*indSd) - vf(2)*flx(1)
+    !$acc atomic update
     pSd(SD_ZMOM,c2*indSd) = pSd(SD_ZMOM,c2*indSd) - vf(3)*flx(1)   
   END DO ! ifg
+
+!$acc update self(pSd)
+!$acc update self(pRhs)
+!$acc update self(pMf)
+
+!$acc exit data detach(pSd)
+!$acc exit data detach(pRhs)
+!$acc exit data detach(pMf)
+!$acc exit data detach(pGc)
+!$acc exit data detach(pDv)
+!$acc exit data detach(pCv)
+!$acc exit data detach(pGrid)
+!$acc exit data detach(pRegion)
+
 
 ! ******************************************************************************
 ! Compute fluxes through boundary faces

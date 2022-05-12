@@ -1012,7 +1012,7 @@ MODULE RFLU_ModStencilsCells
       DO isl = 1,pGrid%c2cs(icg)%nCellMembs
         pGrid%c2cs(icg)%cellMembs(isl) = c2cs(isl)
       END DO ! isl
-      !$acc update device(pGrid%c2cs(icg)%cellMembs)
+      !!$acc update device(pGrid%c2cs(icg)%cellMembs)
 
       ALLOCATE(pGrid%c2cs(icg)%layerInfo(X2CS_LAYER_BEG:X2CS_LAYER_END, &
                pGrid%c2cs(icg)%nLayers),STAT=errorFlag)
@@ -1107,9 +1107,10 @@ MODULE RFLU_ModStencilsCells
       IF ( pGrid%c2cs(icg)%nCellMembs > nCellMembsInfoMax ) THEN 
         nCellMembsInfoMax = pGrid%c2cs(icg)%nCellMembs
         nCellMembsInfoMaxLoc = icg        
-      END IF ! pGrid%c2cs(icg)%nCellMembs    
+      END IF ! pGrid%c2cs(icg)%nCellMembs
+  !$acc update device(pGrid%c2cs(icg)%cellMembs) async    
     END DO ! icg      
-
+    !$acc wait
 ! ******************************************************************************
 !   Deallocate temporary memory
 ! ******************************************************************************
